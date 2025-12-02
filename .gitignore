@@ -1,0 +1,49 @@
+# ----------------------------------------------------
+# Python cache & bytecode
+# ----------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ----------------------------------------------------
+# Build & packaging artifacts
+# ----------------------------------------------------
+build/
+dist/
+*.egg-info/
+src/multisphere.egg-info/
+
+# ----------------------------------------------------
+# Virtual environments
+# ----------------------------------------------------
+venv/
+.env/
+.venv/
+conda-env/
+multisphere_test/
+
+# ----------------------------------------------------
+# IDE & editor files
+# ----------------------------------------------------
+.spyderproject
+.spyproject
+.vscode/
+.idea/
+*.swp
+*~
+
+# ----------------------------------------------------
+# OS junk
+# ----------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------------------
+# Example output (keep folders, ignore content)
+# ----------------------------------------------------
+examples/output_mesh_example/*
+examples/output_voxel_example/*
+
+# Allow placeholder files so folders exist in repo
+!examples/output_mesh_example/.gitkeep
+!examples/output_voxel_example/.gitkeep
