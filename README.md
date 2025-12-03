@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/logo/multisphere_banner_ext.png" alt="multisphere logo" width="75%">
+  <img src="/logo/multisphere_banner_ext.png" alt="multisphere logo" width="85%">
 </p>
 
 <p align="center">
@@ -26,9 +26,12 @@
 </p>
 
 
+---
+
+
 # multisphere
 
-*multisphere* creates overlapping-sphere representations of
+`multisphere` creates overlapping-sphere representations of
 arbitrary 3D geometries based on voxelized Euclidean distance transforms
 (EDT) and feature-enhanced distance fields (FEDT). The algorithm is
 designed for Discrete Element Method (DEM) simulations, where accurate
@@ -58,7 +61,6 @@ such as
 - symmetry violations
 - excessive runtime. 
 
----
 
 ## Features
 
@@ -79,7 +81,6 @@ such as
 - Optional Dice similarity coefficient for mesh-based validation
 - Optional boundary correction to enforce strict STL containment
 
----
 
 ## Installation
 
@@ -102,7 +103,6 @@ The full installation adds:
 - PyVista + Matplotlib for visualization
 - manifold3d for boolean STL reconstruction and Dice computation
 
----
 
 ## Basic usage
 
@@ -117,9 +117,11 @@ sphere_pack = ms.multisphere_from_mesh(
     mesh=mesh,
     div=150,
     padding=2,
+    min_radius_vox=4,
     precision=0.90,
     min_center_distance_vox=4,
     max_spheres=100,
+    confine_mesh=False,
 )
 
 ms.export_sphere_pack_to_csv(sphere_pack, "spheres.csv")
@@ -143,8 +145,10 @@ voxel_grid = ms.load_voxels_from_npy(
 
 sphere_pack = ms.multisphere_from_voxels(
     voxel_grid=voxel_grid,
+    min_radius_vox=4,
     precision=0.95,
     min_center_distance_vox=4,
+    max_spheres=100,
 )
 
 ms.export_sphere_pack_to_csv(sphere_pack, "spheres.csv")
@@ -160,7 +164,6 @@ The examples directory contains:
 - `example_from_mesh.py` — full mesh-to-multisphere pipeline
 - `example_from_voxels.py` — voxel-to-multisphere reconstruction
 
----
 
 ## Limitations
 
@@ -170,7 +173,6 @@ Boolean STL reconstruction is numerically fragile for:
 Performance scales with voxel resolution and peak density.
 Reconstruction quality depends heavily on the chosen voxel resolution.
 
----
 
 ## License
 
@@ -195,7 +197,6 @@ See the LICENSE file for full details.
 
 Refer to the respective projects for full license texts.
 
----
 
 ## Author
 
@@ -203,13 +204,8 @@ Refer to the respective projects for full license texts.
 Friedrich-Alexander-Universität Erlangen–Nürnberg (FAU)  
 Institute for Multiscale Simulation (MSS)
 
----
 
 ## Citation
-
-If you use this software in academic work, you are expected to cite the
-corresponding publication describing the multisphere reconstruction
-method.
 
 Felix Buchele, Patric Müller, Thorsten Pöschel,  
 *Multi-Sphere-Shape generator for DEM simulations using the multi-sphere approach*  
