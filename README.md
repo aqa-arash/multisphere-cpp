@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/logo/multisphere_banner_ext.png" alt="multisphere logo" width="50%">
+  <img src="/logo/multisphere_banner_ext.png" alt="multisphere logo" width="75%">
 </p>
 
 <p align="center">
@@ -211,7 +211,8 @@ If you use this software in academic work, you are expected to cite the
 corresponding publication describing the multisphere reconstruction
 method.
 
-Felix Buchele, Patric Müller, Thorsten Pöschel, *Multi-Sphere-Shape generator for DEM simulations using the multi-sphere approach*
+Felix Buchele, Patric Müller, Thorsten Pöschel,  
+*Multi-Sphere-Shape generator for DEM simulations using the multi-sphere approach*  
 manuscript in preparation
 
 A DOI will be added upon publication

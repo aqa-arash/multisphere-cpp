@@ -10,7 +10,6 @@ Pipeline:
    Requires a boolean backend. Either blender or manifold3D
 5. OPTIONAL: Compute dice coefficient between original mesh and multisphere
    Requires a boolean backend. Either blender or manifold3D
-6. OPTIONAL: adjust sphere pack boundaries to STL boundaries
 7. Export the sphere pack as CSV, VTK, and STL.
    The STL export requires a boolean backend, CSV and VTK export work without 
    additional dependencies.
@@ -35,7 +34,6 @@ from multisphere import (
     plot_mesh,
     plot_sphere_pack,
     SpherePack,
-    adjust_spheres_to_stl_boundary,
 )
 
 
@@ -71,11 +69,14 @@ def main() -> None:
         mesh=mesh,
         div=150,                  # voxel resolution (min AABB edge / div)
         padding=2,
-        min_radius_vox=None,      # rely on precision / max_spheres here
+        min_radius_vox=8,         # minimum sphere radius 
+                                  # (avoids small spurious spheres)
         precision=0.90,           # stop once ~90% voxel agreement is reached
         min_center_distance_vox=4,
-        max_spheres=100,
+        max_spheres=100,          # maximum number of spheres
         show_progress=False,
+        confine_mesh=False,       # confine multisphere representation to the
+                                  # mesh surface
     )
 
     print(f"Number of spheres: {sphere_pack.num_spheres}")
@@ -126,14 +127,7 @@ def main() -> None:
               "multisphere[full]")
     
     # ------------------------------------------------------------------
-    # 6) Adjust multisphere boundaries to STL boundaries
-    # ------------------------------------------------------------------
-    
-    # Optional: clip spheres that protrude outside the STL surface
-    sphere_pack =  adjust_spheres_to_stl_boundary(sphere_pack, mesh)
-
-    # ------------------------------------------------------------------
-    # 7) Export CSV, VTK, STL
+    # 6) Export CSV, VTK, STL
     # ------------------------------------------------------------------
     csv_path = output_dir / "multisphere_spheres.csv"
     vtk_path = output_dir / "multisphere_spheres.vtk"

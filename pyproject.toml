@@ -30,10 +30,10 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-# [project.urls]
-# "Homepage" = "https://github.com/yourname/multisphere"
-# "Source" = "https://github.com/yourname/multisphere"
-# "Issues" = "https://github.com/yourname/multisphere/issues"
+[project.urls]
+"Homepage" = "https://github.com/FelixBuchele/multisphere"
+"Source" = "https://github.com/FelixBuchele/multisphere"
+"Issues" = "https://github.com/FelixBuchele/multisphere/issues"
 
 [project.optional-dependencies]
 viz = [

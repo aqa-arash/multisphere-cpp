@@ -10,7 +10,8 @@ from .multisphere_reconstruction_helpers import (
     _residual_distance_field,
     _filter_peaks,
 )
-from .multisphere_utils import print_progress_bar  
+from .multisphere_utils import (print_progress_bar, 
+    adjust_spheres_to_stl_boundary)
 from .multisphere_io import mesh_to_voxel_grid
 
 def multisphere_from_mesh(
@@ -22,6 +23,7 @@ def multisphere_from_mesh(
     min_center_distance_vox: int = 4,
     max_spheres: int | None = None,
     show_progress: bool = True,
+    confine_mesh: bool = False,
     ) -> SpherePack:
     """
     Construct a multisphere representation directly from a triangle mesh.
@@ -52,6 +54,8 @@ def multisphere_from_mesh(
         Maximum number of spheres. See multisphere_from_voxels.
     show_progress : bool, optional
         Whether to print a progress bar during reconstruction.
+    confine_mesh : bool, optional
+        Whether to confine the multisphere representation to the mesh surface
 
     Returns
     -------
@@ -65,7 +69,7 @@ def multisphere_from_mesh(
         padding=padding,
     )
 
-    return multisphere_from_voxels(
+    sphere_pack = multisphere_from_voxels(
         voxel_grid=voxel_grid,
         min_radius_vox=min_radius_vox,
         precision=precision,
@@ -73,6 +77,12 @@ def multisphere_from_mesh(
         max_spheres=max_spheres,
         show_progress=show_progress,
     )
+
+    if confine_mesh:
+        return adjust_spheres_to_stl_boundary(sphere_pack, mesh)
+    else:
+        return sphere_pack
+        
 
 def multisphere_from_voxels(
     voxel_grid: VoxelGrid,
