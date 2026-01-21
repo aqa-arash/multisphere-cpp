@@ -1,0 +1,72 @@
+// --- Dynamic Greedy Filter ---
+Eigen::MatrixX3i filter_peaks(
+    const Eigen::MatrixX3i& peaks,
+    const Eigen::MatrixX4d& sphere_table,
+    int min_center_distance_vox,
+    const VoxelGrid<float>& distance_field) 
+{
+    if (peaks.rows() == 0) return peaks;
+
+    // --- 1. Setup Mask (Same as before) ---
+    int kernel_diameter = std::max(1, (min_center_distance_vox * 2)-1); // max (1,mcdv) so we do not allow overlapping centers 
+    if (kernel_diameter % 2 == 0) kernel_diameter += 1;
+
+    VoxelGrid<float> mask_grid(distance_field.nx(), distance_field.ny(), distance_field.nz(), 
+                               distance_field.voxel_size, distance_field.origin);
+    VoxelGrid<float> kernel_grid = VoxelGrid<float>::sphere_kernel<float>(kernel_diameter, 1.0);
+
+    for (int i = 0; i < sphere_table.rows(); ++i) {
+        Eigen::Vector3d center(std::round(sphere_table(i,0)), std::round(sphere_table(i,1)), std::round(sphere_table(i,2)));
+        apply_kernel_to_grid<float>(mask_grid, center, kernel_grid, KernelMode::ADD, 1.0);
+    }
+
+    // --- 2. Pre-fetch Data (The Optimization) ---
+    // Instead of sorting Eigen vectors directly, we pack data into a flat std::vector.
+    std::vector<PeakEntry> sorted_peaks;
+    sorted_peaks.reserve(peaks.rows());
+
+    for(int i = 0; i < peaks.rows(); ++i) {
+        int x = peaks(i, 0);
+        int y = peaks(i, 1);
+        int z = peaks(i, 2);
+        // Pre-fetch the value NOW, so we don't look it up later
+        sorted_peaks.push_back({ distance_field(x, y, z), x, y, z });
+    }
+
+    // --- 3. Parallel Sort (C++17) or Fast Serial Sort ---
+    // Since PeakEntry is small and contiguous, standard sort is incredibly fast.
+    
+    // Note: If you have < 100,000 peaks, serial sort is usually FASTER than parallel 
+    // because of thread-spawning overhead.
+    std::sort(sorted_peaks.begin(), sorted_peaks.end(), [](const PeakEntry& a, const PeakEntry& b) {
+        // 1. Radius (Descending)
+        //if (std::abs(a.val - b.val) > 1e-5f) return a.val > b.val;
+        // 2. X (Ascending)
+        if (a.x != b.x) return a.x < b.x;
+        // 3. Y (Ascending)
+        if (a.y != b.y) return a.y < b.y;
+        // 4. Z (Ascending)
+        return a.z < b.z;
+    });
+
+    // --- 4. Dynamic Greedy Selection ---
+    std::vector<Eigen::Vector3i> final_peaks;
+    final_peaks.reserve(peaks.rows());
+
+    for (const auto& p : sorted_peaks) {
+        if (p.x < 0 || p.x >= mask_grid.nx() || 
+            p.y < 0 || p.y >= mask_grid.ny() || 
+            p.z < 0 || p.z >= mask_grid.nz()) continue;
+
+        if (mask_grid(p.x, p.y, p.z) > 0.0f) continue; 
+
+        final_peaks.push_back({p.x, p.y, p.z});
+
+        Eigen::Vector3d center_d(p.x, p.y, p.z);
+        apply_kernel_to_grid<float>(mask_grid, center_d, kernel_grid, KernelMode::ADD, 1.0);
+    }
+
+    Eigen::MatrixX3i out_peaks(final_peaks.size(), 3);
+    for (size_t i = 0; i < final_peaks.size(); ++i) out_peaks.row(i) = final_peaks[i];
+    return out_peaks;
+}
