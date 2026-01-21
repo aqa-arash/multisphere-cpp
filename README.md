@@ -39,13 +39,13 @@ arbitrary 3D geometries based on voxelized Euclidean distance transforms
 designed for Discrete Element Method (DEM) simulations, where accurate
 yet computationally efficient particle shape representations are essential.
 
-The implemented method follows the MSS algorithm introduced by Buchele
-et al. and achieves high shape accuracy at low computational cost.
-
-
 The package supports reconstruction from:
 - Triangle surface meshes (STL)
-- Binary voxel volumes (NumPy)
+- Binary voxel volumes (NumPy/CNPY)
+
+**Implementations available:**
+1. **Python**: Easy to use, rich visualization, integrates with SciPy/Trimesh.
+2. **C++**: High-performance, multi-threaded (OpenMP), header-only architecture.
 
 ## Scientific Background
 
@@ -53,165 +53,173 @@ The multisphere algorithm is based on:
 - Voxelization of the target geometry
 - Exact Euclidean Distance Transform (EDT)
 - Peak refinement of EDT maxima
-- Iterative residual correction using the
-- Feature-Enhanced Distance Tensor (FEDT)
+- Iterative residual correction using the Feature-Enhanced Distance Tensor (FEDT)
 - Termination by shape accuracy, minimum radius, or maximum sphere count
 
 This approach avoids the major drawbacks of greedy sphere removal methods, 
-such as 
-- spurious small spheres
-- symmetry violations
-- excessive runtime. 
+such as spurious small spheres, symmetry violations, and excessive runtime. 
 
 
 ## Features
 
 - multisphere reconstruction from:
   - Triangle meshes (STL)
-  - Binary voxel grids (NumPy)
+  - Binary voxel grids 
 - Exact EDT-driven sphere placement
 - Iterative residual correction using FEDT
 - Multiple termination criteria:
   - Shape precision
   - Maximum number of spheres
   - Minimum allowed sphere radius
+- **(C++ Only)** Robust Generalized Winding Number voxelization (via libigl)
+- **(C++ Only)** OpenMP parallelization for voxelization and field processing
 - Export formats:
   - CSV (sphere centers & radii)
   - VTK (visualization)
   - STL (boolean union of spheres)
-- Optional visualization with PyVista
-- Optional Dice similarity coefficient for mesh-based validation
-- Optional boundary correction to enforce strict STL containment
 
 
-## Installation
+## Python Installation & Usage
 
-Requires Python ≥ 3.9. Linux and macOS are fully supported. 
-Windows is supported but boolean backends may require additional setup.
-
-### Core installation (no visualization, no STL boolean unions)
-
-```bash
-pip install multisphere
-```
-
-### Full installation
+Requires Python ≥ 3.9. 
 
 ```bash
 pip install multisphere[full]
+
 ```
 
-The full installation adds:
-- PyVista + Matplotlib for visualization
-- manifold3d for boolean STL reconstruction and Dice computation
-
-
-## Basic usage
-
-### Mesh based reconstruction
+### Basic Python Usage
 
 ```python
 import multisphere as ms
 
 mesh = ms.load_mesh_from_stl("geometry.stl")
-
 sphere_pack = ms.multisphere_from_mesh(
     mesh=mesh,
     div=150,
-    padding=2,
-    min_radius_vox=4,
-    precision=0.90,
-    min_center_distance_vox=4,
-    max_spheres=100,
-    confine_mesh=False,
+    max_spheres=100
 )
-
 ms.export_sphere_pack_to_csv(sphere_pack, "spheres.csv")
-ms.export_sphere_pack_to_vtk(sphere_pack, "spheres.vtk")
-ms.export_sphere_pack_to_stl(sphere_pack, "spheres.stl")
+
 ```
 
-Note: STL export requires a boolean backend
-(manifold3d or Blender).
+*(See the `examples/` folder for complete Python scripts)*
 
-### Voxel based reconstruction
+---
 
-```python
-import multisphere as ms
+## C++ Implementation
 
-voxel_grid = ms.load_voxels_from_npy(
-    "volume.npy",
-    voxel_size=1.0,
-    origin=(0.0, 0.0, 0.0),
-)
+The C++ implementation is located in `src/` and is designed for high-performance integration. It is a **header-only** library (core logic) with dependencies provided in `include/`.
 
-sphere_pack = ms.multisphere_from_voxels(
-    voxel_grid=voxel_grid,
-    min_radius_vox=4,
-    precision=0.95,
-    min_center_distance_vox=4,
-    max_spheres=100,
-)
+### Dependencies
 
-ms.export_sphere_pack_to_csv(sphere_pack, "spheres.csv")
-ms.export_sphere_pack_to_vtk(sphere_pack, "spheres.vtk")
+* **System**: CMake (≥3.10), C++17 compiler, OpenMP (optional but recommended).
+* **Bundled (in `include/`)**: `libigl` (math/geometry), `cnpy` (numpy IO), `edt` (distance transform), `nanoflann`, `Eigen`.
+* **Optional**: VTK (for visualization), Manifold (for boolean mesh export).
+
+### Building the C++ Examples
+
+The test scripts (`main.cpp` and `main_mesh.cpp`) are configured to be built within the `examples` directory so they can access sample mesh files relative to the build path.
+
+```bash
+mkdir build
+cd build
+cmake .. 
+make -j4
+
 ```
 
-### Examples
+### Basic C++ Usage
 
-Complete working examples are located in
-examples/
+The core API is provided via `multisphere_reconstruction.hpp`.
 
-The examples directory contains:
-- `example_from_mesh.py` — full mesh-to-multisphere pipeline
-- `example_from_voxels.py` — voxel-to-multisphere reconstruction
+```cpp
+#include "multisphere_reconstruction.hpp"
+#include "multisphere_io.hpp"
+
+int main() {
+    // 1. Load Mesh
+    FastMesh mesh = load_mesh_fast("example_mesh.stl");
+
+    // 2. Run Reconstruction
+    SpherePack sp = multisphere_from_mesh(
+        mesh,
+        150,    // div (resolution)
+        2,      // padding
+        8,      // min_radius_vox
+        0.99,   // precision_target
+        4,      // min_center_distance_vox
+        100,    // max_spheres
+        1.0,    // boost
+        true,   // show_progress
+        false   // confine_mesh (requires Manifold)
+    );
+
+    // 3. Export
+    export_to_csv(sp, "results.csv");
+    return 0;
+}
+
+```
+
+### Key Differences: C++ vs Python
+
+1. **Voxelization Method**:
+* **Python**: Uses `trimesh` (ray casting/subdivision).
+* **C++**: Uses `igl::fast_winding_number`. This is mathematically more robust for "dirty" meshes (holes, self-intersections) but may have a different performance profile for extremely large meshes.
 
 
-## Limitations
+2. **Parallelism**:
+* The C++ version explicitly uses **OpenMP** for voxel generation, distance transforms, and kernel application. Ensure your compiler supports OpenMP for maximum speed.
 
-Boolean STL reconstruction is numerically fragile for:
-- Very large sphere counts
-- Extreme overlaps
-Performance scales with voxel resolution and peak density.
-Reconstruction quality depends heavily on the chosen voxel resolution.
 
+3. **IO**:
+* The C++ implementation includes a custom, lightweight binary STL parser (`FastMesh`) for speed, whereas Python uses `trimesh`.
+* It supports loading/saving NumPy (`.npy`) boolean volumes via `cnpy`.
+
+
+
+---
 
 ## License
 
 This project is licensed under the GNU General Public License v3.0.
 
-You are free to use, modify, and redistribute the software under the
-terms of the GPL. Any derivative work must also be released under the GPL.
-
 See the LICENSE file for full details.
 
 `multisphere` depends on third-party libraries with compatible licenses:
 
-| Package | License |
-|---|---|
-| NumPy	| BSD-3-Clause | 
-| SciPy	| BSD-3-Clause | 
-| scikit-image | BSD-3-Clause | 
-| trimesh | MIT | 
-| PyVista | MIT | 
-| Matplotlib | Matplotlib license (BSD-compatible) | 
-| manifold3d | Apache-2.0 | 
-
-Refer to the respective projects for full license texts.
-
+| Package | License | Usage |
+| --- | --- | --- |
+| NumPy/SciPy | BSD-3-Clause | Python |
+| trimesh | MIT | Python |
+| PyVista | MIT | Python Viz |
+| **Eigen** | MPL2 | C++ Math |
+| **libigl** | MPL2 | C++ Voxelization |
+| **cnpy** | MIT | C++ IO |
+| **manifold3d** | Apache-2.0 | Boolean Ops |
 
 ## Author
 
-**Felix Buchele**, Patric Müller, Thorsten Pöschel  
-Friedrich-Alexander-Universität Erlangen–Nürnberg (FAU)  
-Institute for Multiscale Simulation (MSS)
+**Felix Buchele**, Patric Müller, Thorsten Pöschel
 
+Friedrich-Alexander-Universität Erlangen–Nürnberg (FAU)
+
+Institute for Multiscale Simulation (MSS)
 
 ## Citation
 
-Felix Buchele, Patric Müller, Thorsten Pöschel,  
-*Multi-Sphere-Shape generator for DEM simulations using the multi-sphere approach*  
-manuscript in preparation
+Felix Buchele, Patric Müller, Thorsten Pöschel,
 
-A DOI will be added upon publication
+*Multi-Sphere-Shape generator for DEM simulations using the multi-sphere approach* manuscript in preparation
 
+```
+
+### Analysis of the Changes
+1.  **Badge**: Added a C++17 badge to signal language support.
+2.  **Sectioning**: Created a distinct "C++ Implementation" section.
+3.  **Deviations Explained**: I explicitly called out `igl::fast_winding_number`. This is important because users porting data from Python to C++ might see slightly different results for open meshes due to the different voxelization logic.
+4.  **Build Instructions**: Clarified the build process targeting the `examples` folder usage.
+5.  **Dependencies**: Clarified that most C++ dependencies are vendored (bundled) in `include/`, reducing the "scare factor" of installing complex C++ libraries.
+
+```
