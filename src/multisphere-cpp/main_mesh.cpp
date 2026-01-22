@@ -35,7 +35,7 @@ int main() {
         8,     // min_radius_vox
         0.99,  // precision_target
         8,    // min_center_distance_vox
-        100,   // max_spheres
+        10,   // max_spheres
         1, // max_iter
         true, // show_progress
         false // confine_mesh
@@ -48,7 +48,7 @@ int main() {
         8,     // min_radius_vox
         0.99,  // precision_target
         8,    // min_center_distance_vox
-        100,   // max_spheres
+        10,   // max_spheres
         10, // max_iter
         true, // show_progress
         false // confine_mesh

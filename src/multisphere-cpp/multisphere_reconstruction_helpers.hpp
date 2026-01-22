@@ -189,13 +189,18 @@ Eigen::MatrixX4d append_sphere_table(
             break;
         }
 
-        Eigen::Vector3i coord_int = peaks.row(i);
-        float dist_val = distance_field(coord_int.x(), coord_int.y(), coord_int.z());
-        int radius_vox = static_cast<int>(std::round(dist_val));
 
+        Eigen::Vector3i coord_int = peaks.row(i);
+
+        // Apply Geometric Correction (THE FIX)
+        // Add 0.5 to extend the sphere from the voxel center to the voxel face.
+        // Use 0.866 (sqrt(3)/2) if you want to be conservative and cover corners.
+        // We add this to the floating point value directly.
+        float dist_val = distance_field(coord_int.x(), coord_int.y(), coord_int.z()) + 0.87f; // +0.83f for sub-voxel correction (shift to voxel corner)
+
+        int radius_vox = static_cast<int>(std::ceil(dist_val));
         if (min_radius_vox.has_value() && radius_vox < *min_radius_vox) continue;
 
-        int diameter_vox = 2 * radius_vox;
         Eigen::Vector3d direction = shift_voxel_center(distance_field, coord_int, 0.25f);
         Eigen::Vector3d shift_vec = 0.5 * direction;
 
@@ -203,6 +208,8 @@ Eigen::MatrixX4d append_sphere_table(
 
         double true_radius = dist_val + shift_vec.norm();
         double true_diameter = true_radius * 2.0;
+
+
 
 
         all_spheres.push_back({true_center.x(), true_center.y(), true_center.z(), static_cast<double>(true_diameter)});

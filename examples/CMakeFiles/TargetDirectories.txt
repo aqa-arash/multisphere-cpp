@@ -1,0 +1,5 @@
+/nishome/arash/Documents/multisphere-cpp/examples/CMakeFiles/cnpy_static.dir
+/nishome/arash/Documents/multisphere-cpp/examples/CMakeFiles/multisphere_app.dir
+/nishome/arash/Documents/multisphere-cpp/examples/CMakeFiles/multisphere_mesh.dir
+/nishome/arash/Documents/multisphere-cpp/examples/CMakeFiles/edit_cache.dir
+/nishome/arash/Documents/multisphere-cpp/examples/CMakeFiles/rebuild_cache.dir
