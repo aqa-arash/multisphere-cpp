@@ -39,7 +39,7 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
     int ny = std::ceil(extents.y() / voxel_size) + 2 * padding;
     int nz = std::ceil(extents.z() / voxel_size) + 2 * padding;
     
-    Eigen::Vector3d origin = min_v.cast<double>() - (double)padding * voxel_size * Eigen::Vector3d::Ones();
+    Eigen::Vector3f origin = min_v.cast<float>() - (float)padding * voxel_size * Eigen::Vector3f::Ones();
 
     std::cout << "[Voxelizer] Grid: " << nx << "x" << ny << "x" << nz 
               << " | Method: Generalized Winding Number (Robust)" << std::endl;
@@ -101,14 +101,14 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
 void constrain_radii_to_sdf(SpherePack& pack, const FastMesh& mesh) {
     if (mesh.is_empty()) return;
 
-    Eigen::VectorXd sdf;
+    Eigen::VectorXf sdf;
     Eigen::VectorXi I;
-    Eigen::MatrixXd C, N;
+    Eigen::MatrixXf C, N;
 
-    // libigl's AABB and signed distance logic is heavily optimized for double
+    // Compute signed distance
     igl::signed_distance(
         pack.centers, 
-        mesh.vertices.cast<double>(), // The fix for the static assertion error
+        mesh.vertices,
         mesh.triangles, 
         igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, 
         sdf, I, C, N

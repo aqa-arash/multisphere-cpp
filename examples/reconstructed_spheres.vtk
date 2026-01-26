@@ -1,0 +1,12 @@
+# vtk DataFile Version 3.0
+SpherePack Centers
+ASCII
+DATASET POLYDATA
+POINTS 1 float
+32.5 32.5 32.5
+VERTICES 1 2
+1 0
+POINT_DATA 1
+SCALARS radius float 1
+LOOKUP_TABLE default
+15.9033

@@ -23,10 +23,10 @@ struct FastMesh {
 
 // --- SpherePack ---
 struct SpherePack {
-    Eigen::MatrixX3d centers;
-    Eigen::VectorXd radii;
+    Eigen::MatrixX3f centers;
+    Eigen::VectorXf radii;
 
-    SpherePack(Eigen::MatrixX3d c, Eigen::VectorXd r) 
+    SpherePack(Eigen::MatrixX3f c, Eigen::VectorXf r) 
         : centers(std::move(c)), radii(std::move(r)) {
         if (centers.rows() != radii.size()) {
             throw std::invalid_argument("Centers and radii length mismatch.");
@@ -35,8 +35,8 @@ struct SpherePack {
 
     // Modern C++ version of @property
     size_t num_spheres() const { return radii.size(); }
-    double min_radius() const { return radii.size() > 0 ? radii.minCoeff() : 0.0; }
-    double max_radius() const { return radii.size() > 0 ? radii.maxCoeff() : 0.0; }
+    float min_radius() const { return radii.size() > 0 ? radii.minCoeff() : 0.0; }
+    float max_radius() const { return radii.size() > 0 ? radii.maxCoeff() : 0.0; }
 };
 
 // --- VoxelGrid ---
@@ -45,10 +45,10 @@ class VoxelGrid {
 public:
     std::vector<T> data;
     std::array<size_t, 3> shape; // {nx, ny, nz}
-    double voxel_size;
-    Eigen::Vector3d origin;
+    float voxel_size;
+    Eigen::Vector3f origin;
 
-    VoxelGrid(size_t nx, size_t ny, size_t nz, double v_size = 1.0, Eigen::Vector3d orig = Eigen::Vector3d::Zero())
+    VoxelGrid(size_t nx, size_t ny, size_t nz, float v_size = 1.0f, Eigen::Vector3f orig = Eigen::Vector3f::Zero())
         : shape({nx, ny, nz}), voxel_size(v_size), origin(orig) {
         data.resize(nx * ny * nz, static_cast<T>(0));
     }
@@ -127,11 +127,10 @@ public:
    // --- Static Factory: Sphere Kernel ---
     // Templated on <K> to allow creating kernels of bool, float, etc.
     // Usage: VoxelGrid<float>::sphere_kernel<float>(5, 1.0);
-    void sphere_kernel(double cx, double cy, double cz, double diameter){
-        if (diameter <= 0) return;
+    void sphere_kernel(float cx, float cy, float cz, float radius, T fill_value = static_cast<T>(1)) {
+        if (radius <= 0) return;
 
-        double radius = diameter / 2.0;
-        double r_sq = radius * radius;
+        float r_sq = radius * radius;
 
         // 1. Calculate Bounding Box (Clamped to Grid Dimensions)
         // We use member variables directly (nx_, ny_, nz_ or nx(), ny(), nz())
@@ -151,24 +150,24 @@ public:
 
         // 2. Optimized Rasterization Loop
         for (int x = min_x; x <= max_x; ++x) {
-            double dx = x - cx;
-            double dx2 = dx * dx;
+            float dx = x - cx;
+            float dx2 = dx * dx;
             if (dx2 > r_sq) continue;
 
             for (int y = min_y; y <= max_y; ++y) {
-                double dy = y - cy;
-                double dy2 = dy * dy;
-                double dxy2 = dx2 + dy2;
+                float dy = y - cy;
+                float dy2 = dy * dy;
+                float dxy2 = dx2 + dy2;
                 if (dxy2 > r_sq) continue;
 
                 for (int z = min_z; z <= max_z; ++z) {
-                    double dz = z - cz;
-                    double dist_sq = dxy2 + (dz * dz);
+                    float dz = z - cz;
+                    float dist_sq = dxy2 + (dz * dz);
 
                     if (dist_sq <= r_sq) {
                         // Direct member access. 
                         // Assuming operator() returns a reference to the data.
-                        (*this)(x, y, z) = static_cast<T>(1);
+                        (*this)(x, y, z) = fill_value;
                     }
                 }
             }

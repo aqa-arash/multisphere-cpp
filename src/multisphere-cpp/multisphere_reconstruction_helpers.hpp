@@ -13,7 +13,7 @@
 #include "multisphere_voxel_processing.hpp"
 
 // --- Helper: Distance Squared ---
-inline double get_dist_sq(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+inline float get_dist_sq(const Eigen::Vector3f& a, const Eigen::Vector3f& b) {
     return (a - b).squaredNorm();
 }
 
@@ -21,43 +21,55 @@ inline double get_dist_sq(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
 struct PeakEntry {
     float val;      // Pre-fetched distance value
     int x, y, z;    // Coordinates
-    
+    float radius;   // Radius at this peak
+    int index;
     // Original index (optional, if you needed to map back to original list)
 };
 
 /**
  * Detect local maxima in a 3D volume.
- * Equivalent to skimage.feature.peak_local_max.
+ * Returns an Nx4 matrix (Float) where columns are: x, y, z, radius
  */
-Eigen::MatrixX3i peak_local_max_3d(const VoxelGrid<float>& field, int min_distance, int threshold_abs = 1) {
-    std::vector<Eigen::Vector3i> peaks;
+Eigen::MatrixX4f peak_local_max_3d(const VoxelGrid<float>& field, const VoxelGrid<float>& original_distance, int min_distance = 2, int min_radius_vox = 1) {
+    // CHANGE 1: Use Vector4f (floats)
+    std::vector<Eigen::Vector4f> peaks;
+    
     int nx = (int)field.nx(); 
     int ny = (int)field.ny();
     int nz = (int)field.nz();
 
     #pragma omp parallel
     {
-        std::vector<Eigen::Vector3i> local_peaks;
+        std::vector<Eigen::Vector4f> local_peaks;
+        
         #pragma omp for collapse(2)
         for (int x = 0; x < nx; ++x) {
             for (int y = 0; y < ny; ++y) {
                 for (int z = 0; z < nz; ++z) {
                     float val = field(x, y, z);
-                    if (val <= 0.0f) continue;
+                    float radius = original_distance(x, y, z);
+                    
+                    if (radius < min_radius_vox) continue;
+                    if (val <= 1.0f) continue;
 
                     bool is_max = true;
                     // Check local neighborhood
-                    for (int dx = -min_distance; dx <= min_distance && is_max; ++dx) {
-                        for (int dy = -min_distance; dy <= min_distance && is_max; ++dy) {
-                            for (int dz = -min_distance; dz <= min_distance && is_max; ++dz) {
+                    for (int dx = -min_distance; is_max && dx <= min_distance; ++dx) {
+                        for (int dy = -min_distance; is_max && dy <= min_distance; ++dy) {
+                            for (int dz = -min_distance; is_max && dz <= min_distance; ++dz) {
                                 int nx_idx = x + dx, ny_idx = y + dy, nz_idx = z + dz;
+                                
                                 if (nx_idx >= 0 && nx_idx < nx && ny_idx >= 0 && ny_idx < ny && nz_idx >= 0 && nz_idx < nz) {
                                     if (field(nx_idx, ny_idx, nz_idx) > val) is_max = false;
                                 }
                             }
                         }
                     }
-                    if (is_max) local_peaks.push_back({x, y, z});
+                    
+                    if (is_max) {
+                        // CHANGE 2: Cast to float (lighter memory usage)
+                        local_peaks.push_back(Eigen::Vector4f((float)x, (float)y, (float)z, radius));
+                    }
                 }
             }
         }
@@ -65,88 +77,74 @@ Eigen::MatrixX3i peak_local_max_3d(const VoxelGrid<float>& field, int min_distan
         peaks.insert(peaks.end(), local_peaks.begin(), local_peaks.end());
     }
 
-  // 2. Sort Peaks: Primary = Intensity (Descending), Secondary = Coordinate (Ascending)
-    std::sort(peaks.begin(), peaks.end(), [&](const Eigen::Vector3i& a, const Eigen::Vector3i& b) {
-        float val_a = field(a.x(), a.y(), a.z());
-        float val_b = field(b.x(), b.y(), b.z());
-
-        // Define "super close" (floating point tolerance)
+    // CHANGE 3: Sort based on radius (descending), then x,y,z (ascending)
+    std::sort(peaks.begin(), peaks.end(), [](const Eigen::Vector4f& a, const Eigen::Vector4f& b) {
+        float val_a = a[3]; 
+        float val_b = b[3];
+        // Epsilon for float is usually larger than double, but 1e-5 is still fine for this scale
         const float epsilon = 1e-5f;
-
-        // 1. Primary Sort: Intensity (Descending)
-        // If the difference is significant (outside epsilon), return the larger intensity
         if (std::abs(val_a - val_b) > epsilon) {
             return val_a > val_b;
         }
-
-        // 2. Tie-Breaker: X Coordinate (Ascending)
-        if (a.x() != b.x()) {
-            return a.x() < b.x();
-        }
-
-        // 3. Tie-Breaker: Y Coordinate (Ascending)
-        if (a.y() != b.y()) {
-            return a.y() < b.y();
-        }
-
-        // 4. Tie-Breaker: Z Coordinate (Ascending)
-        return a.z() < b.z();
+        if (a[0] != b[0]) return a[0] < b[0]; 
+        if (a[1] != b[1]) return a[1] < b[1]; 
+        return a[2] < b[2];                   
     });
 
-    /* [DEBUG] Print top peak
-    if (!peaks.empty()) {
-        Eigen::Vector3i top = peaks[0];
-        std::cout << "[DEBUG] Top Peak at (" << top.x() << "," << top.y() << "," << top.z() 
-                  << ") Val: " << field(top.x(), top.y(), top.z()) << std::endl;
+    // CHANGE 4: Return MatrixX4f
+    Eigen::MatrixX4f result(peaks.size(), 4);
+    for (size_t i = 0; i < peaks.size(); ++i) {
+        result.row(i) = peaks[i];
     }
-    */
-
-    Eigen::MatrixX3i result(peaks.size(), 3);
-    for (size_t i = 0; i < peaks.size(); ++i) result.row(i) = peaks[i];
+    
     return result;
 }
 
-Eigen::MatrixX3i filter_peaks(
-    const Eigen::MatrixX3i& peaks,
-    const Eigen::MatrixX4d& sphere_table,
+
+/**
+ * Filters peaks based on minimum center distance and applies sub-voxel shifts.
+ * Returns filtered peaks as an Nx4 matrix (Float).
+ */
+
+/**
+ * Filters peaks based on minimum center distance against a history of spheres 
+ * AND self-collisions, then applies sub-voxel shifts.
+ * * Returns filtered peaks as an Nx4 matrix (x, y, z, radius).
+ */
+Eigen::MatrixX4f filter_and_shift_peaks(
+    const Eigen::MatrixX4f& peaks,
+    const Eigen::MatrixX4f& sphere_table, // Added: The History table
+    VoxelGrid<float>& distance_field,
     int min_center_distance_vox) 
 {
     // If no candidates, return immediately
     if (peaks.rows() == 0) return peaks;
 
     // Squared threshold for unified center-to-center distance
-    const double min_dist_sq = min_center_distance_vox * min_center_distance_vox;
+    const float min_dist_sq = (float)(min_center_distance_vox * min_center_distance_vox);
 
-    // Indices of peaks we decide to keep
-    std::vector<int> keep_indices;
-    keep_indices.reserve(peaks.rows());
+    // Storage for the final refined spheres
+    std::vector<Eigen::Vector4f> accepted_spheres;
+    accepted_spheres.reserve(peaks.rows());
 
     // --- The Scan ---
     for (int i = 0; i < peaks.rows(); ++i) {
-        double px = (double)peaks(i, 0);
-        double py = (double)peaks(i, 1);
-        double pz = (double)peaks(i, 2);
+        float px = peaks(i, 0);
+        float py = peaks(i, 1);
+        float pz = peaks(i, 2);
         
         bool collision = false;
 
         // 1. Check against ALL existing spheres (The History)
+        // We do this first to discard peaks colliding with previously known structures
         for (int j = 0; j < sphere_table.rows(); ++j) {
-            double dx = px - sphere_table(j, 0);
-            double dy = py - sphere_table(j, 1);
-            double dz = pz - sphere_table(j, 2);
-            
-            if ((dx*dx + dy*dy + dz*dz) < min_dist_sq) {
-                collision = true;
-                break;
-            }
-        }
-        if (collision) continue;
+            float hx = (float)sphere_table(j, 0);
+            float hy = (float)sphere_table(j, 1);
+            float hz = (float)sphere_table(j, 2);
 
-        // 2. Check against ALREADY ACCEPTED peaks in this batch (Self-NMS)
-        for (int idx : keep_indices) {
-            double dx = px - (double)peaks(idx, 0);
-            double dy = py - (double)peaks(idx, 1);
-            double dz = pz - (double)peaks(idx, 2);
+            float dx = px - hx;
+            float dy = py - hy;
+            float dz = pz - hz;
 
             if ((dx*dx + dy*dy + dz*dz) < min_dist_sq) {
                 collision = true;
@@ -154,80 +152,89 @@ Eigen::MatrixX3i filter_peaks(
             }
         }
 
+        // If it collided with history, skip it; otherwise check self-collision
         if (!collision) {
-            keep_indices.push_back(i);
+            // 2. Check against ALREADY ACCEPTED peaks in this batch (Self-NMS)
+            for (const auto& sphere : accepted_spheres) {
+                float dx = px - sphere[0];
+                float dy = py - sphere[1];
+                float dz = pz - sphere[2];
+
+                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq) {
+                    collision = true;
+                    break;
+                }
+            }
+        }
+
+        // If valid (no collision with history OR new neighbors)
+        if (!collision) {
+            
+            // Get integer coordinates for the voxel lookup
+            Eigen::Vector3i coord_int = peaks.row(i).head<3>().cast<int>();
+
+            // Perform the sub-voxel shift logic
+            Eigen::Vector3f direction = shift_voxel_center(distance_field, coord_int, 0.25f);
+            Eigen::Vector3f shift_vec = 0.5f * direction;
+            Eigen::Vector3f true_center = coord_int.cast<float>() + shift_vec;
+
+            // Calculate radius extending to voxel corners
+            float true_radius = peaks(i, 3) + shift_vec.norm() + 0.87f; 
+
+            accepted_spheres.push_back(Eigen::Vector4f(
+                true_center.x(), 
+                true_center.y(), 
+                true_center.z(), 
+                true_radius
+            ));
         }
     }
 
     // --- Pack Result ---
-    Eigen::MatrixX3i result(keep_indices.size(), 3);
-    for (size_t k = 0; k < keep_indices.size(); ++k) {
-        result.row(k) = peaks.row(keep_indices[k]);
+    Eigen::MatrixX4f result(accepted_spheres.size(), 4);
+    for (size_t k = 0; k < accepted_spheres.size(); ++k) {
+        result.row(k) = accepted_spheres[k];
     }
+
     return result;
 }
 
-
-// --- Append Sphere Table ---
-Eigen::MatrixX4d append_sphere_table(
-    const Eigen::MatrixX4d& existing_table,
-    const VoxelGrid<float>& distance_field,
-    const Eigen::MatrixX3i& peaks,          
-    std::optional<int> min_radius_vox,
+// --- Append Sphere Table (In-Place) ---
+// If max_spheres is set, respects that limit.
+// If peaks.rows()+table.rows() < max_spheres, all peaks are added simultaneously.
+void append_sphere_table(
+    Eigen::MatrixX4f& table,                // Modified in place
+    const Eigen::MatrixX4f& peaks,
     std::optional<int> max_spheres) 
 {
-    if (peaks.rows() == 0) return existing_table;
+    if (peaks.rows() == 0) return;
 
-    std::vector<Eigen::Vector4d> all_spheres;
-    for (int i = 0; i < existing_table.rows(); ++i) {
-        all_spheres.push_back(existing_table.row(i));
-    }
-
-    for (int i = 0; i < peaks.rows(); ++i) {
-        if (max_spheres.has_value() && all_spheres.size() >= static_cast<size_t>(*max_spheres)) {
-            std::cout<< "Max sphere count reached"<<std::endl;
-            break;
+    if (!max_spheres.has_value() || 
+       (table.rows() + peaks.rows() < static_cast<size_t>(*max_spheres))) {
+        table.conservativeResize(table.rows() + peaks.rows(), 4);
+        for (int i = 0; i < peaks.rows(); ++i) {
+            table.row(table.rows() - peaks.rows() + i) = peaks.row(i);
         }
-
-
-        Eigen::Vector3i coord_int = peaks.row(i);
-
-        // Apply Geometric Correction (THE FIX)
-        // Add 0.5 to extend the sphere from the voxel center to the voxel face.
-        // Use 0.866 (sqrt(3)/2) if you want to be conservative and cover corners.
-        // We add this to the floating point value directly.
-        float dist_val = distance_field(coord_int.x(), coord_int.y(), coord_int.z()) + 0.87f; // +0.83f for sub-voxel correction (shift to voxel corner)
-
-        int radius_vox = static_cast<int>(std::ceil(dist_val));
-        if (min_radius_vox.has_value() && radius_vox < *min_radius_vox) continue;
-
-        Eigen::Vector3d direction = shift_voxel_center(distance_field, coord_int, 0.25f);
-        Eigen::Vector3d shift_vec = 0.5 * direction;
-
-        Eigen::Vector3d true_center = coord_int.cast<double>() + shift_vec;
-
-        double true_radius = dist_val + shift_vec.norm();
-        double true_diameter = true_radius * 2.0;
-
-
-
-
-        all_spheres.push_back({true_center.x(), true_center.y(), true_center.z(), static_cast<double>(true_diameter)});
+        return;
     }
-    
-    std::sort(all_spheres.begin(), all_spheres.end(), [](const Eigen::Vector4d& a, const Eigen::Vector4d& b) {
-        return a[3] > b[3];
-    });
+    else {
+        // We can only add up to the max_spheres limit
+        int space_left = *max_spheres - table.rows();
+        if (space_left <= 0) return;
 
-    Eigen::MatrixX4d updated_table(all_spheres.size(), 4);
-    for (size_t i = 0; i < all_spheres.size(); ++i) updated_table.row(i) = all_spheres[i];
-    return updated_table;
+        table.conservativeResize(table.rows() + space_left, 4);
+        for (int i = 0; i < space_left; ++i) {
+            table.row(table.rows() - space_left + i) = peaks.row(i);
+        }
+    }
 }
 
 // --- Residual Distance Field ---
 VoxelGrid<float> residual_distance_field(
     const VoxelGrid<float>& original_distance,
-    const VoxelGrid<float>& spheres_distance) 
+    const VoxelGrid<float>& spheres_distance,
+    const VoxelGrid<float>& min_sphere_distance_field
+   ) 
 {
     if (original_distance.nx() != spheres_distance.nx() || 
         original_distance.ny() != spheres_distance.ny() || 
@@ -241,7 +248,7 @@ VoxelGrid<float> residual_distance_field(
     #pragma omp parallel for
     for (size_t i = 0; i < residual.data.size(); ++i) {
         // R = D_orig - D_spheres
-        float val = original_distance.data[i] - spheres_distance.data[i];
+        float val = original_distance.data[i] - spheres_distance.data[i] - min_sphere_distance_field.data[i];
         residual.data[i] = (val > 0.0f) ? val : 0.0f;
     }
     return residual;

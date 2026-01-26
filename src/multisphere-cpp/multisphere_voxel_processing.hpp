@@ -20,10 +20,10 @@ enum class KernelMode { ADD, SUBTRACT, ZERO };
 template<typename T, typename K>
 void apply_kernel_to_grid(
     VoxelGrid<T>& grid,
-    const Eigen::Vector3d& center,
+    const Eigen::Vector3f& center,
     const VoxelGrid<K>& kernel, // Using VoxelGrid as a container for kernel data
     KernelMode mode = KernelMode::ADD,
-    double scale = 1.0) 
+    float scale = 1.0f) 
 {
     // 1. Boundary & Dimension Checks
     const int dim = 3; 
@@ -42,7 +42,7 @@ void apply_kernel_to_grid(
     }
 
     // 2. Calculate Overlap Region (llf: lower-left-front, trr: top-right-rear)
-    Eigen::Vector3d half = (k_shape.cast<double>().array() - 1.0) / 2.0;
+    Eigen::Vector3f half = (k_shape.cast<float>().array() - 1.0f) / 2.0f;
     Eigen::Vector3i llf_k = (center - half).array().round().cast<int>();
     Eigen::Vector3i trr_k = (center + half).array().round().cast<int>();
 
@@ -140,7 +140,7 @@ inline float check_axis_shift(
  * or between them (half-voxel shift).
  */
 // --- Main Shift Function ---
-inline Eigen::Vector3d shift_voxel_center(
+inline Eigen::Vector3f shift_voxel_center(
     const VoxelGrid<float>& field, 
     const Eigen::Vector3i& idx, 
     float epsilon=1e-5) 
@@ -160,7 +160,7 @@ inline Eigen::Vector3d shift_voxel_center(
     float sz = check_axis_shift(field, x, y, z, 0, 0, 1, val, epsilon);
     if (sz == 0.0f) sz = check_axis_shift(field, x, y, z, 0, 0, -1, val, epsilon);
 
-    return Eigen::Vector3d(sx, sy, sz);
+    return Eigen::Vector3f(sx, sy, sz);
 }
 
 
@@ -195,8 +195,8 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
         return (total_recon == 0) ? 1.0 : 0.0;
     }
 
-    double mismatch_fraction = static_cast<double>(mismatches) / static_cast<double>(total_target);
-    return std::clamp(1.0 - mismatch_fraction, 0.0, 1.0);
+    float mismatch_fraction = static_cast<float>(mismatches) / static_cast<float>(total_target);
+    return std::clamp(1.0f - mismatch_fraction, 0.0f, 1.0f);
 }
 
 
@@ -207,29 +207,26 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
  * sphere_table columns: [x, y, z, diameter_vox]
  */
 template <typename T>
-VoxelGrid<T> spheres_to_grid(
-    const Eigen::MatrixX4d& sphere_table, 
-    int nx, int ny, int nz) 
+void spheres_to_grid( VoxelGrid<T>& grid,
+    const Eigen::MatrixX4f& sphere_table,
+    T fill_value = static_cast<T>(1)) 
 {
-    VoxelGrid<T> grid(nx, ny, nz);
-    if (sphere_table.rows() == 0) return grid;
+    if (sphere_table.rows() == 0) return;
 
     // We loop through spheres. For each sphere, apply_kernel_to_grid is called.
     // Note: If spheres are large, apply_kernel_to_grid internally uses OMP.
     #pragma omp parallel for
     for (int i = 0; i < sphere_table.rows(); ++i) {
-        double cx = sphere_table(i, 0);
-        double cy = sphere_table(i, 1);
-        double cz = sphere_table(i, 2);
-        double diameter_vox = sphere_table(i, 3);
-
-        if (diameter_vox <= 0) continue;
-        grid.sphere_kernel(cx, cy, cz, diameter_vox);
+        float cx = sphere_table(i, 0);
+        float cy = sphere_table(i, 1);
+        float cz = sphere_table(i, 2);
+        float radius_vox = sphere_table(i, 3);
+        
+        if (radius_vox <= 0) continue;
+        grid.sphere_kernel(cx, cy, cz, radius_vox, fill_value);
 
 
     }
-
-    return grid;
 }
 
 
@@ -250,7 +247,7 @@ FastMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0))
     int nx = grid.nx();
     int ny = grid.ny();
     int nz = grid.nz();
-    double vs = grid.voxel_size;
+    float vs = grid.voxel_size;
 
     // Direction offsets: +x, -x, +y, -y, +z, -z
     const int dx[6] = {1, -1, 0, 0, 0, 0};

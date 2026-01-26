@@ -332,6 +332,56 @@ int main() {
     }
 
     save_mesh_to_stl(grid_to_mesh(cheese), "swiss_cheese.stl");
+
+
+
+    // 10. Create Geometry: "Ice Cream Cone"
+    // Geometry Definition:
+    // - Cone Tip: (32, 32, 10)
+    // - Cone Base: (32, 32, 50) -> Height 40
+    // - Base Radius: 10.0 (Aspect Ratio 4:1)
+    // - Sphere Cap: Center (32, 32, 50), Radius 12.0 (The "Scoop")
+    VoxelGrid<bool> ice_cream(nx, ny, nz, v_size);
+    
+    std::cout << "[1/3] Generating Ice Cream Cone..." << std::endl;
+
+    double cone_tip_z = 2.0;
+    double cone_base_z = 50.0;
+    double cone_base_r = 10.0;
+    double scoop_r = 12.0; 
+    
+    for (int x = 0; x < nx; ++x) {
+        for (int y = 0; y < ny; ++y) {
+            for (int z = 0; z < nz; ++z) {
+                double dx = x - 32.0;
+                double dy = y - 32.0;
+                
+                // --- Cone Logic ---
+                bool in_cone = false;
+                if (z >= cone_tip_z && z <= cone_base_z) {
+                    // Radius increases linearly from tip to base
+                    double height_fraction = (z - cone_tip_z) / (cone_base_z - cone_tip_z);
+                    double current_r = height_fraction * cone_base_r;
+                    
+                    if ((dx*dx + dy*dy) <= (current_r * current_r)) {
+                        in_cone = true;
+                    }
+                }
+
+                // --- Sphere Cap Logic ---
+                // Centered exactly at the top of the cone (the base)
+                double dz_sphere = z - cone_base_z; 
+                bool in_sphere = (dx*dx + dy*dy + dz_sphere*dz_sphere) <= (scoop_r * scoop_r);
+
+                if (in_cone || in_sphere) {
+                    ice_cream(x, y, z) = true;
+                }
+            }
+        }
+    }
+    
+    save_mesh_to_stl(grid_to_mesh(ice_cream), "ice_cream_cone.stl");
+
     //////////////////////////////// Bar Grid EDT Test ///////////////////////////////
 
     // 3. Run EDT
@@ -369,8 +419,11 @@ int main() {
         0.95,   // precision_target
         4,      // min_center_distance_vox
         10,     // max_spheres
+        5,     // max iter
         true    // show_progress
     );
+
+    
 
     SpherePack double_sp = multisphere_from_voxels(
         double_sphere, 
@@ -451,11 +504,34 @@ int main() {
         true    // show_progress
     );
 
+    SpherePack ice_cream_no_boost = multisphere_from_voxels(
+        ice_cream,
+        2,      // min_radius_vox (Keep small to fit in tight corners)
+        0.92,   // precision_target (Slightly lower as perfect concave fill is hard)
+        15,      // min_center_distance_vox 
+        10,     // max_spheres (High count required for concave boundaries)
+        1, // max iter
+        true    // show_progress
+    );
+
+
+    SpherePack ice_cream_boost = multisphere_from_voxels(
+        ice_cream,
+        2,      // min_radius_vox (Keep small to fit in tight corners)
+        0.99,   // precision_target (Slightly lower as perfect concave fill is hard)
+        15,      // min_center_distance_vox 
+        10,     // max_spheres (High count required for concave boundaries)
+        10, // max iter
+        true    // show_progress
+    );
+    
+
 
     std::cout << "\nReconstruction Complete!" << std::endl;
     std::cout << "--Single Sphere : \n Spheres found: " << single_sp.num_spheres() << std::endl;
     std::cout << "Max radius: " << single_sp.max_radius() << " units" << std::endl;
 
+    
     std::cout << "--Double Sphere : \n Spheres found: " << double_sp.num_spheres() << std::endl;
     std::cout << "Max radius: " << double_sp.max_radius() << " units" << std::endl;
 
@@ -473,6 +549,9 @@ int main() {
 
     std::cout << "--Swiss Cheese : \n Spheres found: " << cheese_sp.num_spheres() << std::endl;
 
+    std::cout << "--Ice Cream Cone (No Boost) : \n Spheres found: " << ice_cream_no_boost.num_spheres() << std::endl;
+    std::cout << "--Ice Cream Cone (With Boost) : \n Spheres found: " << ice_cream_boost.num_spheres() << std::endl;
+
 
 
     // 3. Visualization (Optional based on CMake/HAVE_VTK)
@@ -485,6 +564,8 @@ int main() {
     std::cout << "[3/3] VTK not enabled. Skipping visualization." << std::endl;
     export_to_csv(single_sp, "reconstructed_spheres.csv");
     export_to_vtk(single_sp, "reconstructed_spheres.vtk");
+
+    
     export_to_csv(double_sp, "reconstructed_double_spheres.csv");
     export_to_vtk(double_sp, "reconstructed_double_spheres.vtk");
     export_to_csv(rectangle_sp, "reconstructed_rectangle_spheres.csv");
@@ -507,6 +588,12 @@ int main() {
 
     export_to_csv(cheese_sp, "reconstructed_cheese.csv");
     export_to_vtk(cheese_sp, "reconstructed_cheese.vtk");
+
+    export_to_csv(ice_cream_no_boost, "reconstructed_ice_cream_no_boost.csv");
+    export_to_vtk(ice_cream_no_boost, "reconstructed_ice_cream_no_boost.vtk");
+
+    export_to_csv(ice_cream_boost, "reconstructed_ice_cream_boost.csv");
+    export_to_vtk(ice_cream_boost, "reconstructed_ice_cream_boost.vtk");
 
     std::cout << "To see the result, export to CSV or recompile with VTK fixed." << std::endl;
 #endif
