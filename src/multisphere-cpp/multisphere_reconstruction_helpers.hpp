@@ -179,7 +179,7 @@ Eigen::MatrixX4f filter_and_shift_peaks(
             Eigen::Vector3f true_center = coord_int.cast<float>() + shift_vec;
 
             // Calculate radius extending to voxel corners
-            float true_radius = peaks(i, 3) + shift_vec.norm() + 0.87f; 
+            float true_radius = peaks(i, 3) + shift_vec.norm() ; 
 
             accepted_spheres.push_back(Eigen::Vector4f(
                 true_center.x(), 
@@ -205,7 +205,7 @@ Eigen::MatrixX4f filter_and_shift_peaks(
 void append_sphere_table(
     Eigen::MatrixX4f& table,                // Modified in place
     const Eigen::MatrixX4f& peaks,
-    std::optional<int> max_spheres) 
+    std::optional<int> max_spheres = std::nullopt) 
 {
     if (peaks.rows() == 0) return;
 

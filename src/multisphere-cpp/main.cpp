@@ -341,7 +341,7 @@ int main() {
     // - Cone Base: (32, 32, 50) -> Height 40
     // - Base Radius: 10.0 (Aspect Ratio 4:1)
     // - Sphere Cap: Center (32, 32, 50), Radius 12.0 (The "Scoop")
-    VoxelGrid<bool> ice_cream(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> ice_cream(nx, ny, nz, v_size);
     
     std::cout << "[1/3] Generating Ice Cream Cone..." << std::endl;
 
@@ -380,6 +380,7 @@ int main() {
         }
     }
     
+    save_voxels_to_npy("ice_cream_cone.npy", ice_cream);
     save_mesh_to_stl(grid_to_mesh(ice_cream), "ice_cream_cone.stl");
 
     //////////////////////////////// Bar Grid EDT Test ///////////////////////////////
@@ -415,11 +416,11 @@ int main() {
     std::cout << "[2/3] Running reconstruction..." << std::endl;
     SpherePack single_sp = multisphere_from_voxels(
         single_sphere, 
+        4,      // min_center_distance_vox
+        1, //max iter
         2,      // min_radius_vox
         0.95,   // precision_target
-        4,      // min_center_distance_vox
         10,     // max_spheres
-        5,     // max iter
         true    // show_progress
     );
 
@@ -427,18 +428,20 @@ int main() {
 
     SpherePack double_sp = multisphere_from_voxels(
         double_sphere, 
+        4,      // min_center_distance_vox
+        1, // max iter
         2,      // min_radius_vox
         0.95,   // precision_target
-        4,      // min_center_distance_vox
         10,     // max_spheres
         true    // show_progress
     );
 
     SpherePack rectangle_sp = multisphere_from_voxels(
         rectangle, 
+        4,      // min_center_distance_vox
+        1, // max iter
         2,      // min_radius_vox
         0.95,   // precision_target
-        4,      // min_center_distance_vox
         10,     // max_spheres
         true    // show_progress
     );
@@ -447,9 +450,10 @@ int main() {
     // Note: We perform this with slightly higher sphere count to allow fitting the corner
     SpherePack l_shape_sp = multisphere_from_voxels(
         l_shape, 
+        3,      // min_center_distance_vox (Reduced to allow tighter packing in corner)
+        1, // max iter
         2,      // min_radius_vox
         0.95,   // precision_target
-        3,      // min_center_distance_vox (Reduced to allow tighter packing in corner)
         15,     // max_spheres
         true    // show_progress
     );
@@ -458,9 +462,10 @@ int main() {
     // A torus requires many spheres to approximate the curve
     SpherePack torus_sp = multisphere_from_voxels(
         torus, 
+        3,      // min_center_distance_vox
+        1, // max iter
         2,      // min_radius_vox
         0.90,   // precision_target (Slightly lower to prevent infinite small spheres)
-        3,      // min_center_distance_vox
         30,     // max_spheres (Increased significantly for the ring)
         true    // show_progress
     );
@@ -470,58 +475,62 @@ int main() {
     // followed by 4 corrective spheres for the corners.
     SpherePack cluster_sp = multisphere_from_voxels(
         cluster, 
+        2,      // min_center_distance_vox (Low, because overlap is tight)
+        1, // max iter
         2,      // min_radius_vox
         0.95,   // precision_target
-        2,      // min_center_distance_vox (Low, because overlap is tight)
         10,     // max_spheres
         true    // show_progress
     );
 
     SpherePack sputnik_sp = multisphere_from_voxels(
         sputnik, 
+        2,      // min_center_distance_vox 
+        1, // max iter
         2,      // min_radius_vox
         0.95,   // precision_target
-        2,      // min_center_distance_vox 
         10,     // max_spheres
         true    // show_progress
     );
 
     SpherePack tumor_sp = multisphere_from_voxels(
         tumor, 
+        2,    // min_center_distance_vox 
+        1 , //maxiter
         2,      // min_radius_vox
         0.95,   // precision_target
-        2,      // min_center_distance_vox 
         10,     // max_spheres
         true    // show_progress
     );
 
     SpherePack cheese_sp = multisphere_from_voxels(
         cheese, 
+        2,      // min_center_distance_vox 
+        1, // max iter
         2,      // min_radius_vox (Keep small to fit in tight corners)
         0.92,   // precision_target (Slightly lower as perfect concave fill is hard)
-        2,      // min_center_distance_vox 
         1050,     // max_spheres (High count required for concave boundaries)
         true    // show_progress
     );
 
     SpherePack ice_cream_no_boost = multisphere_from_voxels(
         ice_cream,
+        15,      // min_center_distance_vox 
+        1, // max iter
         2,      // min_radius_vox (Keep small to fit in tight corners)
         0.92,   // precision_target (Slightly lower as perfect concave fill is hard)
-        15,      // min_center_distance_vox 
         10,     // max_spheres (High count required for concave boundaries)
-        1, // max iter
         true    // show_progress
     );
 
 
     SpherePack ice_cream_boost = multisphere_from_voxels(
         ice_cream,
+        15,      // min_center_distance_vox 
+        10, // max iter
         2,      // min_radius_vox (Keep small to fit in tight corners)
         0.99,   // precision_target (Slightly lower as perfect concave fill is hard)
-        15,      // min_center_distance_vox 
         10,     // max_spheres (High count required for concave boundaries)
-        10, // max iter
         true    // show_progress
     );
     

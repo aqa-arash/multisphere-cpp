@@ -155,6 +155,19 @@ multisphere_mesh/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/multisphere_mesh.dir/build.make CMakeFiles/multisphere_mesh.dir/build
 .PHONY : multisphere_mesh/fast
 
+#=============================================================================
+# Target rules for targets named multisphere_collision
+
+# Build rule for target.
+multisphere_collision: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 multisphere_collision
+.PHONY : multisphere_collision
+
+# fast build rule for target.
+multisphere_collision/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/multisphere_collision.dir/build.make CMakeFiles/multisphere_collision.dir/build
+.PHONY : multisphere_collision/fast
+
 include/cnpy.o: include/cnpy.cpp.o
 .PHONY : include/cnpy.o
 
@@ -203,6 +216,30 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/multisphere_app.dir/build.make CMakeFiles/multisphere_app.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+main_collision.o: main_collision.cpp.o
+.PHONY : main_collision.o
+
+# target to build an object file
+main_collision.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/multisphere_collision.dir/build.make CMakeFiles/multisphere_collision.dir/main_collision.cpp.o
+.PHONY : main_collision.cpp.o
+
+main_collision.i: main_collision.cpp.i
+.PHONY : main_collision.i
+
+# target to preprocess a source file
+main_collision.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/multisphere_collision.dir/build.make CMakeFiles/multisphere_collision.dir/main_collision.cpp.i
+.PHONY : main_collision.cpp.i
+
+main_collision.s: main_collision.cpp.s
+.PHONY : main_collision.s
+
+# target to generate assembly for a file
+main_collision.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/multisphere_collision.dir/build.make CMakeFiles/multisphere_collision.dir/main_collision.cpp.s
+.PHONY : main_collision.cpp.s
+
 main_mesh.o: main_mesh.cpp.o
 .PHONY : main_mesh.o
 
@@ -237,6 +274,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... cnpy_static"
 	@echo "... multisphere_app"
+	@echo "... multisphere_collision"
 	@echo "... multisphere_mesh"
 	@echo "... include/cnpy.o"
 	@echo "... include/cnpy.i"
@@ -244,6 +282,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... main_collision.o"
+	@echo "... main_collision.i"
+	@echo "... main_collision.s"
 	@echo "... main_mesh.o"
 	@echo "... main_mesh.i"
 	@echo "... main_mesh.s"

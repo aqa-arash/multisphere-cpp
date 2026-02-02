@@ -1,4 +1,24 @@
-# ----------------------------------------------------
+# Ignore VTK/VTI/CSV data files (global)
+*.vtk
+*.vti
+*.csv
+
+# Explicitly ignore these files in the `examples/` tree (redundant but clear)
+examples/**/*.vtk
+examples/**/*.vti
+examples/**/*.csv
+
+# Optional: ignore common build and Python artifacts (uncomment if desired)
+# CMake files
+# CMakeCache.txt
+# CMakeFiles/
+# cmake_install.cmake
+# Makefile
+
+# Python caches
+# __pycache__/
+# *.py[cod]
+# *.egg-info/# ----------------------------------------------------
 # Python cache & bytecode
 # ----------------------------------------------------
 __pycache__/

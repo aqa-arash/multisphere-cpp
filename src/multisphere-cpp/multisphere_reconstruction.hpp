@@ -21,26 +21,36 @@
 /**
  * Main Algorithm: Construct multisphere from voxel grid.
  */
+template <typename T>
 SpherePack multisphere_from_voxels(
-    const VoxelGrid<bool>& input_grid,
+    const VoxelGrid<T>& input_grid,
+    int min_center_distance_vox = 2,
+    int max_iter = 10,
     std::optional<int> min_radius_vox = std::nullopt,
     std::optional<float> precision_target = std::nullopt,
-    int min_center_distance_vox = 2,
     std::optional<int> max_spheres = std::nullopt,
-    int max_iter = 10,
     bool show_progress = true
 ) {
     VoxelGrid<float> original_distance(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
-    VoxelGrid<bool> voxel_grid(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
+    VoxelGrid<uint8_t> voxel_grid(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
     
     bool check_min_center_distance = true;
     if (min_center_distance_vox <= 1) {
         std::cout<<"[WARNING] min_center_distance_vox <= 1."<<std::endl;
         min_center_distance_vox = 2;
     }
+    // check if T is uint8_t or bool for optimization
+    if constexpr (std::is_same<T, uint8_t>::value) {
+        voxel_grid = input_grid;
+    } else {
+        // Convert to uint8_t grid for distance transform
+        #pragma omp parallel for
+        for (size_t i = 0; i < input_grid.data.size(); ++i) {
+            voxel_grid.data[i] = (input_grid.data[i] > static_cast<T>(0)) ? static_cast<T>(1) : static_cast<T>(0);
+        }
+    }
     // check type T and compute distance field if needed
-    original_distance = input_grid.distance_transform();
-    voxel_grid = input_grid;
+    original_distance = voxel_grid.distance_transform();
     
 
 
@@ -168,7 +178,7 @@ SpherePack multisphere_from_voxels(
         std::cout <<"x = " << sphere_table(i, 0) << ", y = " << sphere_table(i, 1) << ", z = " << sphere_table(i, 2) << ", r = " << sphere_table(i, 3) << "\n";
     }
     std::cout << std::endl;
-
+ /* 
     //sort spheres by radius descending
     std::vector<std::pair<float, int>> radius_index_pairs;
     for (int i = 0; i < sphere_table.rows(); ++i) {
@@ -179,22 +189,22 @@ SpherePack multisphere_from_voxels(
     for (int i = 0; i < radius_index_pairs.size(); ++i) {
         sorted_sphere_table.row(i) = sphere_table.row(radius_index_pairs[i].second);;
     }
-
+*/
 
 
     // Convert Table to SpherePack (Physical units)
-    Eigen::MatrixX3f centers_phys(sorted_sphere_table.rows(), 3);
-    Eigen::VectorXf radii_phys(sorted_sphere_table.rows());
+    Eigen::MatrixX3f centers_phys(sphere_table.rows(), 3);
+    Eigen::VectorXf radii_phys(sphere_table.rows());
 
-    for (int i = 0; i < sorted_sphere_table.rows(); ++i) {
-        Eigen::Vector3f pos_vox = sorted_sphere_table.block<1, 3>(i, 0).transpose();
+    for (int i = 0; i < sphere_table.rows(); ++i) {
+        Eigen::Vector3f pos_vox = sphere_table.block<1, 3>(i, 0).transpose();
         centers_phys.row(i) = voxel_grid.origin + (pos_vox.array()+0.5f).matrix() * voxel_grid.voxel_size;
-        radii_phys(i) = (sorted_sphere_table(i, 3)) * voxel_grid.voxel_size;
+        radii_phys(i) = (sphere_table(i, 3)) * voxel_grid.voxel_size;
     }
 
     // [DEBUG] Verify final sphere positions and radii
     std::cout << "[DEBUG] Final Sphere Sample (Physical Units):" << std::endl;
-    for (int i = 0; i < std::min(5, int(sorted_sphere_table.rows())); ++i) {
+    for (int i = 0; i < std::min(5, int(sphere_table.rows())); ++i) {
         std::cout <<"x = " << centers_phys(i, 0) << ", y = " << centers_phys(i, 1) << ", z = " << centers_phys(i, 2) << ", r = " << radii_phys(i) << "\n";
     }
     std::cout << std::endl;
@@ -211,11 +221,11 @@ SpherePack multisphere_from_mesh(
     const FastMesh& mesh,
     int div = 100,
     int padding = 2,
+    int min_center_distance_vox = 4,
+    int iter = 1,
     std::optional<int> min_radius_vox = std::nullopt,
     std::optional<float> precision = std::nullopt,
-    int min_center_distance_vox = 4,
     std::optional<int> max_spheres = std::nullopt,
-    float boost = 1,
     bool show_progress = true,
     bool confine_mesh = false ) {
     if (mesh.is_empty()) {
@@ -231,11 +241,11 @@ SpherePack multisphere_from_mesh(
     // 3. Perform Reconstruction
     SpherePack sp = multisphere_from_voxels(
         voxel_grid,
+        min_center_distance_vox,
+        iter,
         min_radius_vox,
         precision,
-        min_center_distance_vox,
         max_spheres,
-        boost,
         show_progress
     );
 

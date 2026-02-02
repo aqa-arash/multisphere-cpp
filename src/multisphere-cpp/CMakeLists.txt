@@ -101,8 +101,11 @@ endif()
 # --- Example App ---
 add_executable(multisphere_app main.cpp)
 add_executable(multisphere_mesh main_mesh.cpp)
+add_executable(multisphere_collision main_collision.cpp)
+
 
 
 target_link_libraries(multisphere_app PRIVATE multisphere_lib)
 target_link_libraries(multisphere_mesh PRIVATE multisphere_lib)
+target_link_libraries(multisphere_collision PRIVATE multisphere_lib)
 
