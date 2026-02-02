@@ -10,19 +10,19 @@ examples/**/*.csv
 
 # Optional: ignore common build and Python artifacts (uncomment if desired)
 # CMake files
-# CMakeCache.txt
-# CMakeFiles/
-# cmake_install.cmake
-# Makefile
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
 
-# Python caches
-# __pycache__/
-# *.py[cod]
-# *.egg-info/# ----------------------------------------------------
-# Python cache & bytecode
+
+
 # ----------------------------------------------------
+#Python cache & bytecode
+#----------------------------------------------------
 __pycache__/
 *.py[cod]
+*.egg-info/
 *$py.class
 
 # ----------------------------------------------------
@@ -73,3 +73,25 @@ examples/output_voxel_example/*
 # Allow placeholder files so folders exist in repo
 !examples/output_mesh_example/.gitkeep
 !examples/output_voxel_example/.gitkeep
+
+# ----------------------------------------------------
+# Ignore compiled executables in examples
+# ----------------------------------------------------
+# Common named executables produced by examples build
+examples/multisphere_app
+examples/multisphere_collision
+examples/multisphere_mesh
+# Common binary extensions
+examples/*.exe
+examples/*.out
+examples/*.bin
+examples/*.so
+examples/*.dll
+
+# ----------------------------------------------------
+# Ignore any folder in `examples/` that contains the word "output"
+# and all files inside that folder (any depth)
+# ----------------------------------------------------
+# Matches: examples/output_mesh_example/, examples/some_output_dir/, examples/foo_output_bar/
+examples/**/*output*/
+examples/**/*output*/**
