@@ -102,10 +102,12 @@ endif()
 add_executable(multisphere_app main.cpp)
 add_executable(multisphere_mesh main_mesh.cpp)
 add_executable(multisphere_collision main_collision.cpp)
+add_executable(multisphere_boost main_boost.cpp)
 
 
 
 target_link_libraries(multisphere_app PRIVATE multisphere_lib)
 target_link_libraries(multisphere_mesh PRIVATE multisphere_lib)
 target_link_libraries(multisphere_collision PRIVATE multisphere_lib)
+target_link_libraries(multisphere_boost PRIVATE multisphere_lib)
 

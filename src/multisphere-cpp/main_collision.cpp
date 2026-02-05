@@ -25,21 +25,21 @@ int main() {
     // 2. Simulation Parameters
     const int nx = 64, ny = 64, nz = 64;
     const float v_size = 1.0f;
-    const float R_large = 15.0f;
-    const float R_small = 5.0f;
-    const Eigen::Vector3f center_large(32.0f, 32.0f, 32.0f);
+    const float R_large = 20.0f;
+    const float R_small = 7.0f;
+    const Eigen::Vector3f center_large(R_large+1, 32.0f, 32.0f);
 
     std::ofstream master_csv(csv_dir + "/summary_results.csv");
     master_csv << "step,center_distance,found_sphere_idx,recon_x,recon_y,recon_z,recon_r\n";
 
     int step_count = 0;
-    for (double dist = 20.0; dist >= 0.0; dist -= 1.0) {
+    for (double dist = R_large+R_small; dist >= R_large-R_small; dist -= 1.0) {
         // Initialize Boolean Grid
         VoxelGrid<bool> grid(nx, ny, nz, v_size);
         std::vector<uint8_t> bool_buffer(nx * ny * nz, 0);
 
         // Generate geometry: Union of two spheres
-        Eigen::Vector3f center_small(32.0f + (float)dist, 32.0f, 32.0f);
+        Eigen::Vector3f center_small(center_large.x() + (float)dist, center_large.y(), center_large.z());
         
         // Use the built-in sphere_kernel for efficiency
         grid.sphere_kernel(center_large.x(), center_large.y(), center_large.z(), R_large, true);
@@ -82,6 +82,9 @@ int main() {
                        << pack.centers(i, 2) << "," // Z
                        << pack.radii(i) << "\n";    // Radius
         }
+
+        export_to_vtk(pack, 
+            csv_dir + "/spheres_step_" + std::to_string(step_count) + ".vtk");
 
         std::cout << "Step " << step_count << " (Dist: " << dist << ") processed." << std::endl;
         step_count++;
