@@ -116,7 +116,7 @@ SpherePack multisphere_from_voxels(
                 // summed_field = distance_field + residual
                 #pragma omp parallel for
                 for (size_t i = 0; i < summed_field.data.size(); ++i) {
-                    summed_field.data[i] = original_distance.data[i] + residual.data[i] * iter ;
+                    summed_field.data[i] = original_distance.data[i] + residual.data[i] * iter ; 
                 }
         } else {
             summed_field.data = original_distance.data;
