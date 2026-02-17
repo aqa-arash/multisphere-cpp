@@ -217,6 +217,8 @@ SpherePack multisphere_from_voxels(
  * Construct a multisphere representation directly from a triangle mesh.
  * Logically equivalent to the Python version, optimized for C++.
  */
+
+// TODO: Allow for min center and radius to be passed in mesh units (not voxels) and convert internally based on voxel size.
 SpherePack multisphere_from_mesh(
     const FastMesh& mesh,
     int div = 100,
@@ -248,7 +250,7 @@ SpherePack multisphere_from_mesh(
         
         for (int i = 0; i < sphere_table->rows(); ++i) {
             Eigen::Vector3f pos_phys = sphere_table->block<1, 3>(i, 0).transpose();
-            centers_vox.row(i) = voxel_grid.origin + (pos_phys.array()-0.5f).matrix() / voxel_grid.voxel_size;
+            centers_vox.row(i) = ((pos_phys - voxel_grid.origin).array() / voxel_grid.voxel_size) - 0.5f;
             radii_vox(i) = (sphere_table->operator()(i, 3)) / voxel_grid.voxel_size;
         }
         Eigen::MatrixX4f sphere_table_vox(sphere_table->rows(), 4);
