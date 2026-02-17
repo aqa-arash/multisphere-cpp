@@ -38,7 +38,7 @@ int main() {
 
     VoxelGrid<float> edt_grid = grid.distance_transform();
 
-    /*
+    
     const float a = 120.0f;
     const float b = 60.0f;
     const float c = 60.0f;
@@ -51,7 +51,7 @@ int main() {
 
 
 
-    // 3. Generate Ellipsoid Geometry
+    // 3. Generate Ellipsoid Geometry DO NOT PARALLELIZE
     for (int z = 0; z < nz; ++z) {
         for (int y = 0; y < ny; ++y) {
             for (int x = 0; x < nx; ++x) {
@@ -149,7 +149,7 @@ int main() {
     std::ofstream master_csv1(csv_dir + "/summary_results.csv");
     master_csv1 << "step,center_distance,found_sphere_idx,recon_x,recon_y,recon_z,recon_r\n";
 
-    // 3. Generate Ellipsoid Geometry
+    // 3. Generate Ellipsoid Geometry (DO NOT PARALLELIZE)
     for (int z = 0; z < nz; ++z) {
         for (int y = 0; y < ny; ++y) {
             for (int x = 0; x < nx; ++x) {
@@ -245,7 +245,7 @@ int main() {
     std::cout  << " (Dist: " << center_distance << ") processed." << std::endl;
     master_csv1.close();
 
-*/
+
     ///////////////////////////////////////////////////////////////////////////////
     // case three : cube 
     ///////////////////////////////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ int main() {
     master_csv2 << "step,center_distance,found_sphere_idx,recon_x,recon_y,recon_z,recon_r\n";
     VoxelGrid<float> medial_axis_grid(nx, ny, nz, v_size);
     
-    #pragma omp parallel for collapse(3)
+ // DO NOT PARALLELIZE (FAILS ON BOOLEAN)
     for (int z = 0; z < nz; ++z) {
         for (int y = 0; y < ny; ++y) {
             for (int x = 0; x < nx; ++x) {
@@ -287,7 +287,7 @@ int main() {
                     float dist_z = half_s - std::abs(z - center_point.z());
                     // 2. The medial axis exists where the two SMALLEST distances are nearly equal
                     // We sort them or check pairs:
-                    if (dist_x >0 && dist_y > 0 && dist_z > 0) { // Only consider points inside the cube for medial axis
+                    if (dist_x >1 && dist_y > 1 && dist_z > 1) { // Only consider points inside the cube for medial axis
                         bool on_axis = false;
                         float eps = v_size * 0.8f; // Adaptive threshold based on resolution
                         if (std::abs(dist_x - dist_y) < eps && dist_x <= dist_z) on_axis = true;
@@ -309,7 +309,13 @@ int main() {
         }
     }
 
-        // Fill the uint8 buffer for cnpy
+    export_voxel_grid_to_vtk(medial_axis_grid, csv_dir + "/medial_axis.vtk");
+    FastMesh Medial = grid_to_mesh(medial_axis_grid);
+    save_mesh_to_stl(Medial, csv_dir + "/surface_mesh.stl");
+
+
+    // Fill the uint8 buffer for cnpy
+    #pragma omp parallel for 
     for(size_t i = 0; i < grid.data.size(); ++i) {
         if (grid.data[i]) bool_buffer[i] = 1;
     }   
@@ -317,16 +323,7 @@ int main() {
     // 3. Distance Transform & Export
     edt_grid = grid.distance_transform(); 
 
-
-            
-        
     
-
-
-    export_voxel_grid_to_vtk(medial_axis_grid, csv_dir + "/medial_axis.vtk");
-    FastMesh Medial = grid_to_mesh(grid);
-    save_mesh_to_stl(Medial, csv_dir + "/surface_mesh.stl");
-
 
     cnpy::npy_save(bool_dir + "/bool_step_"  + ".npy", 
                     bool_buffer.data(), {(size_t)nx, (size_t)ny, (size_t)nz}, "w");
