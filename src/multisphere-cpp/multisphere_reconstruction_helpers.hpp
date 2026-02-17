@@ -137,6 +137,7 @@ Eigen::MatrixX4f filter_and_shift_peaks(
 
         // 1. Check against ALL existing spheres (The History)
         // We do this first to discard peaks colliding with previously known structures
+        
         for (int j = 0; j < sphere_table.rows(); ++j) {
             float hx = (float)sphere_table(j, 0);
             float hy = (float)sphere_table(j, 1);
@@ -232,8 +233,7 @@ void append_sphere_table(
 // --- Residual Distance Field ---
 VoxelGrid<float> residual_distance_field(
     const VoxelGrid<float>& original_distance,
-    const VoxelGrid<float>& spheres_distance,
-    const VoxelGrid<float>& min_sphere_distance_field
+    const VoxelGrid<float>& spheres_distance
    ) 
 {
     if (original_distance.nx() != spheres_distance.nx() || 
@@ -248,7 +248,7 @@ VoxelGrid<float> residual_distance_field(
     #pragma omp parallel for
     for (size_t i = 0; i < residual.data.size(); ++i) {
         // R = D_orig - D_spheres
-        float val = original_distance.data[i] - spheres_distance.data[i] - min_sphere_distance_field.data[i];
+        float val = original_distance.data[i] - spheres_distance.data[i];
         residual.data[i] = (val > 0.0f) ? val : 0.0f;
     }
     return residual;

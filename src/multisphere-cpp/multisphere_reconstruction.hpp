@@ -29,10 +29,20 @@ SpherePack multisphere_from_voxels(
     std::optional<int> min_radius_vox = std::nullopt,
     std::optional<float> precision_target = std::nullopt,
     std::optional<int> max_spheres = std::nullopt,
-    bool show_progress = true
+    bool show_progress = true,
+    std::optional<Eigen::MatrixX4f> sphere_table_in = std::nullopt
+
 ) {
     VoxelGrid<float> original_distance(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
     VoxelGrid<uint8_t> voxel_grid(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
+    Eigen::MatrixX4f sphere_table(0, 4);
+    if (sphere_table_in.has_value()) {
+        sphere_table = *sphere_table_in;
+        std::cout << "Using provided initial sphere table with " << sphere_table.rows() << " spheres." << std::endl;
+    }
+    else {
+        std::cout << "No initial sphere table provided. Starting with empty table." << std::endl;
+    }
     
     bool check_min_center_distance = true;
     if (min_center_distance_vox <= 1) {
@@ -66,12 +76,9 @@ SpherePack multisphere_from_voxels(
     }
     // [END DEBUG]
 
-    Eigen::MatrixX4f sphere_table(0, 4);
     int iter = 1;
 
     VoxelGrid<uint8_t> recon_mask (voxel_grid.nx(),voxel_grid.ny(),voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
-
-    VoxelGrid<float> min_sphere_distance_field(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
     
     VoxelGrid<float> residual(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
 
@@ -100,17 +107,10 @@ SpherePack multisphere_from_voxels(
                         std::cout << " Termination: Reached target precision of " << *precision_target << std::endl;
                         break;}
                     }
-            
-                // Min Center Distance Field
-                Eigen::MatrixX4f min_sphere_distance_table = sphere_table.block(prev_count, 0, sphere_table.rows() - prev_count, 4);
-                min_sphere_distance_table.col(3).array() = min_center_distance_vox;
-                spheres_to_grid<float>(min_sphere_distance_field, min_sphere_distance_table, std::numeric_limits<float>::max() 
-
-                );
 
         
             VoxelGrid<float> spheres_distance = recon_mask.distance_transform();
-            residual = residual_distance_field(original_distance, spheres_distance, min_sphere_distance_field);
+            residual = residual_distance_field(original_distance, spheres_distance);
             }
             
                 // summed_field = distance_field + residual
@@ -222,12 +222,14 @@ SpherePack multisphere_from_mesh(
     int div = 100,
     int padding = 2,
     int min_center_distance_vox = 4,
-    int iter = 1,
+    int max_iter = 1,
     std::optional<int> min_radius_vox = std::nullopt,
     std::optional<float> precision = std::nullopt,
     std::optional<int> max_spheres = std::nullopt,
     bool show_progress = true,
-    bool confine_mesh = false ) {
+    bool confine_mesh = false,
+    std::optional<Eigen::MatrixX4f> sphere_table = std::nullopt
+) {
     if (mesh.is_empty()) {
         throw std::runtime_error("Cannot reconstruct from an empty mesh.");
     }
@@ -238,16 +240,47 @@ SpherePack multisphere_from_mesh(
     // centered on the mesh centroid with the requested padding.
     VoxelGrid<bool> voxel_grid = mesh_to_binary_grid(mesh, div, padding);
 
-    // 3. Perform Reconstruction
-    SpherePack sp = multisphere_from_voxels(
-        voxel_grid,
-        min_center_distance_vox,
-        iter,
-        min_radius_vox,
-        precision,
-        max_spheres,
-        show_progress
-    );
+    SpherePack sp;
+    if (sphere_table.has_value()) {
+        // Convert Table to SpherePack (Physical units)
+        Eigen::MatrixX3f centers_vox(sphere_table->rows(), 3);
+        Eigen::VectorXf radii_vox(sphere_table->rows());
+        
+        for (int i = 0; i < sphere_table->rows(); ++i) {
+            Eigen::Vector3f pos_phys = sphere_table->block<1, 3>(i, 0).transpose();
+            centers_vox.row(i) = voxel_grid.origin + (pos_phys.array()-0.5f).matrix() / voxel_grid.voxel_size;
+            radii_vox(i) = (sphere_table->operator()(i, 3)) / voxel_grid.voxel_size;
+        }
+        Eigen::MatrixX4f sphere_table_vox(sphere_table->rows(), 4);
+        sphere_table_vox.block(0, 0, sphere_table->rows(), 3) = centers_vox;
+        sphere_table_vox.col(3) = radii_vox;
+        // 3. Perform Reconstruction
+        sp = multisphere_from_voxels(
+            voxel_grid,
+            min_center_distance_vox,
+            max_iter,
+            min_radius_vox,
+            precision,
+            max_spheres,
+            show_progress,
+            sphere_table_vox // initial spheres in voxel units
+
+        );
+
+
+    } else {
+        std::cout << "No initial sphere table provided. Starting with an empty table." << std::endl;
+        sp = multisphere_from_voxels(
+            voxel_grid,
+            min_center_distance_vox,
+            max_iter,
+            min_radius_vox,
+            precision,
+            max_spheres,
+            show_progress
+        );
+    }
+
 
     // 4. Boundary Adjustment (Optional)
     if (confine_mesh) {

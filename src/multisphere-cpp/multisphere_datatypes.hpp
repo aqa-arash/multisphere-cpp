@@ -26,7 +26,7 @@ struct SpherePack {
     Eigen::MatrixX3f centers;
     Eigen::VectorXf radii;
 
-    SpherePack(Eigen::MatrixX3f c, Eigen::VectorXf r) 
+    SpherePack(Eigen::MatrixX3f c = Eigen::MatrixX3f(0, 3), Eigen::VectorXf r = Eigen::VectorXf(0)) 
         : centers(std::move(c)), radii(std::move(r)) {
         if (centers.rows() != radii.size()) {
             throw std::invalid_argument("Centers and radii length mismatch.");

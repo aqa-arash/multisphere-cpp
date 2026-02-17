@@ -14,9 +14,12 @@
 #endif
 
 #include "multisphere_datatypes.hpp"
+// 1. Save current warning state and ignore specific warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfree-nonheap-object"
 #include <igl/signed_distance.h>
 #include <igl/fast_winding_number.h>
-
+#pragma GCC diagnostic pop
 
 // --- Robust Voxelizer (Generalized Winding Number) ---
 // Best for "Dirty" Meshes (Holes, Self-Intersections, Internal Faces)
