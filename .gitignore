@@ -3,6 +3,152 @@
 *.vti
 *.csv
 
+# --- C++ build artifacts ---
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.out
+*.app
+*.mod
+*.pch
+*.pdb
+*.ilk
+*.manifest
+*.exp
+*.idb
+*.stackdump
+*.gcda
+*.gcno
+*.gcov
+*.dSYM/
+*.ipch
+*.aps
+*.ncb
+*.sdf
+*.opensdf
+*.tlog
+*.log
+*.user
+*.suo
+*.sln
+*.vcxproj*
+*.cmake
+Testing/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
+Debug/
+Release/
+*.swp
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# --- Python virtual environments ---
+.env/
+.venv/
+venv/
+env/
+conda-env/
+multisphere_test/
+
+# --- Python packaging ---
+dist/
+build/
+*.egg-info/
+src/multisphere.egg-info/
+pip-wheel-metadata/
+
+# --- Python cache & bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- IDE/editor files ---
+.vscode/
+.idea/
+*.sublime*
+*.swp
+*.bak
+*.tmp
+*.DS_Store
+Thumbs.db
+.spyderproject
+.spyproject
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Example output and generated data ---
+examples/output_mesh_example/*
+examples/output_voxel_example/*
+examples/**/*output*/
+examples/**/*output*/**
+
+# --- Allow placeholder files so folders exist in repo ---
+!examples/output_mesh_example/.gitkeep
+!examples/output_voxel_example/.gitkeep
+
+# --- Ignore compiled executables in examples ---
+examples/multisphere_app
+examples/multisphere_collision
+examples/multisphere_mesh
+examples/*.exe
+examples/*.out
+examples/*.bin
+examples/*.so
+examples/*.dll
+examples/*.vtk
+examples/*.cvs
+
+# --- Ignore test and coverage outputs ---
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.tox/
+.pylint.d/
+.hypothesis/
+
+# --- Miscellaneous ---
+*.log
+*.pid
+*.seed
+*.orig
+*.rej
+*.bak
+*.tmp
+*.old
+*.swp
+*.swo
+*.swn
+
+# --- Ignore user-specific config ---
+*.user
+*.suo
+*.sln
+*.ncb
+*.psess
+*.vsp
+*.vspx
+*.vspscc
+*.vssscc
+*.dbmdl
+*.dbproj.schemaview
+*.pfx
+*.publishsettings
+*.vs/
+
 # Explicitly ignore these files in the `examples/` tree (redundant but clear)
 examples/**/*.vtk
 examples/**/*.vti
@@ -87,6 +233,8 @@ examples/*.out
 examples/*.bin
 examples/*.so
 examples/*.dll
+examples/*.vtk
+examples/*.cvs
 
 # ----------------------------------------------------
 # Ignore any folder in `examples/` that contains the word "output"
