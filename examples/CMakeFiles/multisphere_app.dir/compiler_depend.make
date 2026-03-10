@@ -547,6 +547,7 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
   /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere-interface.h \
   /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_datatypes.hpp \
   /usr/include/c++/11/thread \
   /usr/include/c++/11/bits/std_thread.h \
@@ -580,10 +581,6 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
   /usr/include/c++/11/condition_variable \
   /usr/include/c++/11/future \
   /usr/include/c++/11/bits/atomic_futex.h \
-  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp \
-  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_datatypes.hpp \
-  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction_helpers.hpp \
-  /usr/include/c++/11/optional \
   /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_io.hpp \
   /usr/include/c++/11/fstream \
   /usr/include/c++/11/bits/codecvt.h \
@@ -609,7 +606,6 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
   /usr/include/c++/11/numeric \
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/pstl/glue_numeric_defs.h \
-  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_voxel_processing.hpp \
   /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_mesh_handler.hpp \
   /usr/include/eigen3/Eigen/Core \
   /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/signed_distance.h \
@@ -845,8 +841,16 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
   /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/point_mesh_squared_distance.cpp \
   /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/pseudonormal_test.h \
   /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/pseudonormal_test.cpp \
-  /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/fast_winding_number.h
+  /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/fast_winding_number.h \
+  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction_helpers.hpp \
+  /usr/include/c++/11/optional \
+  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_voxel_processing.hpp \
+  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp
 
+
+/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp:
+
+/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction_helpers.hpp:
 
 /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/pseudonormal_test.cpp:
 
@@ -1130,10 +1134,6 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
 
 /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_io.hpp:
 
-/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction_helpers.hpp:
-
-/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp:
-
 /usr/include/c++/11/future:
 
 /usr/include/c++/11/optional:
@@ -1195,6 +1195,8 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
 /usr/include/c++/11/bits/unique_ptr.h:
 
 /usr/include/c++/11/bits/std_thread.h:
+
+/usr/include/c++/11/thread:
 
 /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/find.cpp:
 
@@ -1696,11 +1698,11 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++allocator.h:
 
+/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_voxel_processing.hpp:
+
 /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/massmatrix_intrinsic.cpp:
 
 /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/edge_lengths.h:
-
-/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_voxel_processing.hpp:
 
 /usr/include/eigen3/Eigen/src/Core/DiagonalMatrix.h:
 
@@ -1833,6 +1835,8 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
 /usr/include/eigen3/Eigen/src/Core/Redux.h:
 
 /nishome/arash/Documents/multisphere-cpp/src/include/thirdparty/igl/signed_distance.cpp:
+
+/nishome/arash/Documents/multisphere-cpp/src/include/multisphere-interface.h:
 
 /usr/include/c++/11/cctype:
 
@@ -2493,5 +2497,3 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
 /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
 
 /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_datatypes.hpp:
-
-/usr/include/c++/11/thread:
