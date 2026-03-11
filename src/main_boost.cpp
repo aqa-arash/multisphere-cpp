@@ -132,7 +132,6 @@ int main() {
     // 4. Reconstruction
     SpherePack pack = multisphere_from_voxels(grid,
                                     10, // min_center_distance_vox
-                                    100, // max iter
                                     20, // min_radius_vox
                                     0.99, // precision_target
                                     100000, // max_spheres
@@ -246,7 +245,6 @@ int main() {
     // 4. Reconstruction
     SpherePack pack2 = multisphere_from_voxels(grid,
                                     center_distance + 2, // min_center_distance_vox
-                                    20, // max iter
                                     20, // min_radius_vox
                                     0.99, // precision_target
                                     100000, // max_spheres
@@ -366,7 +364,6 @@ int main() {
     // 4. Reconstruction
     SpherePack pack3 = multisphere_from_voxels(grid,
                                     10, // min_center_distance_vox
-                                    10, // max iter
                                     20, // min_radius_vox
                                     0.99, // precision_target
                                     100000, // max_spheres

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- Build Options ---
 option(USE_OPENMP "Use OpenMP for parallelization" ON)
+option(MULTISPHERE_DEBUG "Enable debug output for multisphere-cpp" OFF)
 
 # Optimization settings
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
@@ -36,7 +37,9 @@ if(USE_OPENMP)
     endif()
 endif()
 
+
 # --- Target Configuration ---
+
 
 # A. Create a static library for cnpy (compiles cnpy.cpp)
 add_library(cnpy_static STATIC include/thirdparty/cnpy.cpp)
@@ -62,6 +65,10 @@ if(USE_OPENMP AND OpenMP_CXX_FOUND)
     target_link_libraries(multisphere_lib INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
+# 4. Debugging
+if(MULTISPHERE_DEBUG)
+    target_compile_definitions(multisphere_lib INTERFACE MULTISPHERE_DEBUG)
+endif()
 
 # --- Example App ---
 add_executable(multisphere_app main.cpp)

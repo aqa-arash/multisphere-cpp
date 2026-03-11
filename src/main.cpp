@@ -208,31 +208,29 @@ int main() {
     // ---------------------------------------------------
     std::cout << "[2/3] Running reconstruction..." << std::endl;
 
-    // voxelgrid, min_center_distance_vox, max_weight, min_radius_vox, precision_target, max_spheres, use_boost, initial_sphere_table
-    SpherePack single_sp = multisphere_from_voxels(single_sphere, 4, 1, 2, 0.95, 10, true);
-    SpherePack double_sp = multisphere_from_voxels(double_sphere, 4, 1, 2, 0.95, 10, true);
-    SpherePack rectangle_sp = multisphere_from_voxels(rectangle, 4, 1, 2, 0.95, 10, true);
-    SpherePack l_shape_sp = multisphere_from_voxels(l_shape, 3, 1, 2, 0.95, 15, true);
-    SpherePack torus_sp = multisphere_from_voxels(torus, 3, 1, 2, 0.90, 30, true);
-    SpherePack cluster_sp = multisphere_from_voxels(cluster, 2, 1, 2, 0.95, 10, true);
-    SpherePack sputnik_sp = multisphere_from_voxels(sputnik, 2, 1, 2, 0.95, 10, true);
-    SpherePack tumor_sp = multisphere_from_voxels(tumor, 2, 1, 2, 0.95, 10, true);
-    SpherePack cheese_sp = multisphere_from_voxels(cheese, 2, 1, 2, 0.92, 1050, true);
-    SpherePack ice_cream_no_boost = multisphere_from_voxels(ice_cream, 15, 1, 2, 0.92, 10, true);
-    SpherePack ice_cream_boost = multisphere_from_voxels(ice_cream, 15, 10, 2, 0.99, 10, true);
+    // voxelgrid, min_center_distance_vox, min_radius_vox, precision_target, max_spheres, use_boost, initial_sphere_table
+    SpherePack single_sp = multisphere_from_voxels(single_sphere, 4,  2, 0.95, 10, true);
+    SpherePack double_sp = multisphere_from_voxels(double_sphere, 4,  2, 0.95, 10, true);
+    SpherePack rectangle_sp = multisphere_from_voxels(rectangle, 4,  2, 0.95, 10, true);
+    SpherePack l_shape_sp = multisphere_from_voxels(l_shape, 3,  2, 0.95, 15, true);
+    SpherePack torus_sp = multisphere_from_voxels(torus, 3,  2, 0.90, 30, true);
+    SpherePack cluster_sp = multisphere_from_voxels(cluster, 2,  2, 0.95, 10, true);
+    SpherePack sputnik_sp = multisphere_from_voxels(sputnik, 2,  2, 0.95, 10, true);
+    SpherePack tumor_sp = multisphere_from_voxels(tumor, 2, 2, 0.95, 10, true);
+    SpherePack cheese_sp = multisphere_from_voxels(cheese, 2, 2, 0.92, 1050, true);
+    SpherePack ice_cream_boost = multisphere_from_voxels(ice_cream, 15, 2, 0.99, 10, true);
 
     std::cout << "\nReconstruction Complete!" << std::endl;
     std::cout << "--Single Sphere : Spheres found: " << single_sp.num_spheres() << ", Max radius: " << single_sp.max_radius() << " units" << std::endl;
     std::cout << "--Double Sphere : Spheres found: " << double_sp.num_spheres() << ", Max radius: " << double_sp.max_radius() << " units" << std::endl;
     std::cout << "--Rectangle : Spheres found: " << rectangle_sp.num_spheres() << ", Max radius: " << rectangle_sp.max_radius() << " units" << std::endl;
-    std::cout << "--L-Shape : Spheres found: " << l_shape_sp.num_spheres() << std::endl;
-    std::cout << "--Torus : Spheres found: " << torus_sp.num_spheres() << std::endl;
-    std::cout << "--Phantom Peak Cluster : Spheres found: " << cluster_sp.num_spheres() << std::endl;
-    std::cout << "--Sputnik : Spheres found: " << sputnik_sp.num_spheres() << std::endl;
-    std::cout << "--Tumor : Spheres found: " << tumor_sp.num_spheres() << std::endl;
-    std::cout << "--Swiss Cheese : Spheres found: " << cheese_sp.num_spheres() << std::endl;
-    std::cout << "--Ice Cream Cone (No Boost) : Spheres found: " << ice_cream_no_boost.num_spheres() << std::endl;
-    std::cout << "--Ice Cream Cone (With Boost) : Spheres found: " << ice_cream_boost.num_spheres() << std::endl;
+    std::cout << "--L-Shape : Spheres found: " << l_shape_sp.num_spheres() << ", Max radius: " << l_shape_sp.max_radius() << " units" << std::endl;
+    std::cout << "--Torus : Spheres found: " << torus_sp.num_spheres() << ", Max radius: " << torus_sp.max_radius() << " units" << std::endl;
+    std::cout << "--Phantom Peak Cluster : Spheres found: " << cluster_sp.num_spheres() << ", Max radius: " << cluster_sp.max_radius() << " units" << std::endl;
+    std::cout << "--Sputnik : Spheres found: " << sputnik_sp.num_spheres() << ", Max radius: " << sputnik_sp.max_radius() << " units" << std::endl;
+    std::cout << "--Tumor : Spheres found: " << tumor_sp.num_spheres() << ", Max radius: " << tumor_sp.max_radius() << " units" << std::endl;
+    std::cout << "--Swiss Cheese : Spheres found: " << cheese_sp.num_spheres() << ", Max radius: " << cheese_sp.max_radius() << " units" << std::endl;
+    std::cout << "--Ice Cream Cone (With Boost) : Spheres found: " << ice_cream_boost.num_spheres() << ", Max radius: " << ice_cream_boost.max_radius() << " units" << std::endl;
 
     // 3. Visualization or Export
     // --------------------------
@@ -254,8 +252,6 @@ int main() {
     export_to_vtk(tumor_sp, "reconstructed_tumor.vtk");
     export_to_csv(cheese_sp, "reconstructed_cheese.csv");
     export_to_vtk(cheese_sp, "reconstructed_cheese.vtk");
-    export_to_csv(ice_cream_no_boost, "reconstructed_ice_cream_no_boost.csv");
-    export_to_vtk(ice_cream_no_boost, "reconstructed_ice_cream_no_boost.vtk");
     export_to_csv(ice_cream_boost, "reconstructed_ice_cream_boost.csv");
     export_to_vtk(ice_cream_boost, "reconstructed_ice_cream_boost.vtk");
     std::cout << "To see the result, export to CSV or recompile with VTK enabled." << std::endl;

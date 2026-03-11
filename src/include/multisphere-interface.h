@@ -1,6 +1,6 @@
 
 /**
- * @file multisphere-cpp.h
+ * @file multisphere-interface.h
  * @brief Umbrella header for the multisphere-cpp library.
  *
  * Includes all main data structures and user-facing API functions for mesh voxelization,
@@ -14,17 +14,6 @@
 
 #pragma once
 
-/**
- * @file multisphere-cpp.h
- * @brief Umbrella header for the multisphere-cpp library (namespace MSS).
- *
- * Includes all main data structures and user-facing API functions for mesh voxelization,
- * multisphere reconstruction, I/O, and voxel processing. Include this file to access the
- * primary functionality of the library.
- *
- * @author Arash Moradian
- * @date 2026-03-10
- */
 
 #include "multisphere_datatypes.hpp"
 #include "multisphere_io.hpp"
@@ -69,7 +58,6 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
  * @tparam T VoxelGrid data type.
  * @param input_grid Input voxel grid.
  * @param min_center_distance_vox Minimum center distance (voxels).
- * @param max_iter Maximum iterations.
  * @param min_radius_vox Minimum radius (voxels).
  * @param precision_target Target precision.
  * @param max_spheres Maximum number of spheres.
@@ -81,7 +69,6 @@ template <typename T>
 SpherePack multisphere_from_voxels(
 	const VoxelGrid<T>& input_grid,
 	int min_center_distance_vox, // = 2
-	int max_iter, // = 10
 	std::optional<int> min_radius_vox, // = std::nullopt
 	std::optional<float> precision_target, // = std::nullopt
 	std::optional<int> max_spheres, // = std::nullopt
@@ -95,7 +82,6 @@ SpherePack multisphere_from_voxels(
  * @param div Voxel grid division (resolution).
  * @param padding Grid padding.
  * @param min_center_distance_vox Minimum center distance (voxels).
- * @param max_iter Maximum iterations.
  * @param min_radius_vox Minimum radius (voxels).
  * @param precision Target precision.
  * @param max_spheres Maximum number of spheres.
@@ -109,7 +95,6 @@ SpherePack multisphere_from_mesh(
 	int div, // = 100
 	int padding, // = 2
 	int min_center_distance_vox, // = 4
-	int max_iter, // = 1
 	std::optional<int> min_radius_vox, // = std::nullopt
 	std::optional<float> precision, // = std::nullopt
 	std::optional<int> max_spheres, // = std::nullopt

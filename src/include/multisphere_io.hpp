@@ -93,8 +93,9 @@ inline FastMesh load_mesh_fast(const std::string& path) {
     for (int i = 0; i < (int)unique_vertices.size(); ++i) mesh.vertices.row(i) = unique_vertices[i];
     #pragma omp parallel for
     for (int i = 0; i < (int)face_indices.size(); ++i) mesh.triangles.row(i) = face_indices[i];
-
-    std::cout << "[IO] Loaded STL. Vertices welded: " << (num_triangles*3) << " -> " << unique_vertices.size() << std::endl;
+    #ifdef MULTISPHERE_DEBUG
+        std::cout << "[IO] Loaded STL. Vertices welded: " << (num_triangles*3) << " -> " << unique_vertices.size() << std::endl;
+    #endif
     return mesh;
 }
 
@@ -255,8 +256,10 @@ inline void save_mesh_to_stl(const FastMesh& mesh, const std::string& output_pat
         uint16_t attr = 0;
         file.write(reinterpret_cast<char*>(&attr), 2);
     }
-    
-    std::cout << "[IO] Saved debug mesh to: " << output_path << std::endl;
+    #ifdef MULTISPHERE_DEBUG
+        std::cout << "[IO] Saved debug mesh to: " << output_path << std::endl;
+    #endif
+
 }
 
 

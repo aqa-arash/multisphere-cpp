@@ -88,7 +88,6 @@ int main() {
         // -----------------
         SpherePack pack = multisphere_from_voxels(grid,
                                         2,      // min_center_distance_vox
-                                        5,      // max iter
                                         2,      // min_radius_vox
                                         0.99,   // precision_target
                                         100000, // max_spheres

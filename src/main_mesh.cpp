@@ -49,7 +49,6 @@ int main() {
             400,    // div
             2,      // padding
             10,     // min_center_distance_vox
-            10,     // max_iter
             4,      // min_radius_vox
             0.99,   // precision_target
             100000, // max_spheres

@@ -77,10 +77,10 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
     int nz = std::ceil(extents.z() / voxel_size) + 2 * padding;
 
     Eigen::Vector3f origin = min_v.cast<float>() - static_cast<float>(padding) * voxel_size * Eigen::Vector3f::Ones();
-
-    std::cout << "[Voxelizer] Grid: " << nx << "x" << ny << "x" << nz 
-              << " | Method: Generalized Winding Number (Robust)" << std::endl;
-
+    #ifdef MULTISPHERE_DEBUG
+        std::cout << "[Voxelizer] Grid: " << nx << "x" << ny << "x" << nz 
+                << " | Method: Generalized Winding Number (Robust)" << std::endl;
+    #endif
     VoxelGrid<bool> grid(nx, ny, nz, voxel_size, origin);
 
     // 2. Prepare Query Points (Voxel Centers)
