@@ -22,7 +22,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Debug
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -202,7 +202,7 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 Eigen3_DIR:PATH=/usr/share/eigen3/cmake
 
 //Enable debug output for multisphere-cpp
-MULTISPHERE_DEBUG:BOOL=OFF
+MULTISPHERE_DEBUG:BOOL=ON
 
 //Value Computed by CMake
 MultisphereLib_BINARY_DIR:STATIC=/nishome/arash/Documents/multisphere-cpp/examples

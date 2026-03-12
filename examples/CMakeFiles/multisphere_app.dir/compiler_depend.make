@@ -845,8 +845,11 @@ CMakeFiles/multisphere_app.dir/main.cpp.o: /nishome/arash/Documents/multisphere-
   /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction_helpers.hpp \
   /usr/include/c++/11/optional \
   /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_voxel_processing.hpp \
-  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp
+  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp \
+  /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_physics_computation.hpp
 
+
+/nishome/arash/Documents/multisphere-cpp/src/include/multisphere_physics_computation.hpp:
 
 /nishome/arash/Documents/multisphere-cpp/src/include/multisphere_reconstruction.hpp:
 

@@ -6,5 +6,5 @@ CXX_DEFINES = -DHAVE_OPENMP
 
 CXX_INCLUDES = -I/nishome/arash/Documents/multisphere-cpp/src/include
 
-CXX_FLAGS = -O3 -march=native -std=gnu++17
+CXX_FLAGS = -g -O3 -march=native -std=gnu++17
 
