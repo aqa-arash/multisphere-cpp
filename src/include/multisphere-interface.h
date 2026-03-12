@@ -63,6 +63,7 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
  * @param max_spheres Maximum number of spheres.
  * @param show_progress Show progress output.
  * @param sphere_table_in Optional initial sphere table.
+ * @param compute_physics Whether to compute physical properties of the multisphere union.
  * @return SpherePack reconstruction result.
  */
 template <typename T>
@@ -73,7 +74,8 @@ SpherePack multisphere_from_voxels(
 	std::optional<float> precision_target, // = std::nullopt
 	std::optional<int> max_spheres, // = std::nullopt
 	bool show_progress, // = true
-	std::optional<Eigen::MatrixX4f> sphere_table_in // = std::nullopt
+	std::optional<Eigen::MatrixX4f> sphere_table_in, // = std::nullopt
+	bool compute_physics //= false
 );
 
 /**
@@ -88,6 +90,7 @@ SpherePack multisphere_from_voxels(
  * @param show_progress Show progress output.
  * @param confine_mesh Confine spheres to mesh boundary.
  * @param sphere_table Optional initial sphere table.
+ * @param compute_physics Whether to compute physical properties of the multisphere union.
  * @return SpherePack reconstruction result.
  */
 SpherePack multisphere_from_mesh(
@@ -100,7 +103,8 @@ SpherePack multisphere_from_mesh(
 	std::optional<int> max_spheres, // = std::nullopt
 	bool show_progress, // = true
 	bool confine_mesh, // = false
-	std::optional<Eigen::MatrixX4f> sphere_table // = std::nullopt
+	std::optional<Eigen::MatrixX4f> sphere_table, // = std::nullopt
+	bool compute_physics //= false
 );
 
 /**

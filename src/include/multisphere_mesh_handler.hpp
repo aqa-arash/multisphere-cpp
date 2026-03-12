@@ -19,6 +19,10 @@
 #include <Eigen/Core>
 #include <algorithm>
 
+#ifdef MULTISPHERE_DEBUG
+    #include <chrono>
+#endif
+
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
@@ -85,8 +89,10 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
 
     // 2. Prepare Query Points (Voxel Centers)
     Eigen::MatrixXf queries(nx * ny * nz, 3);
-
-    #pragma omp parallel for collapse(3)
+    #ifdef MULTISPHERE_DEBUG
+        auto start_time = std::chrono::high_resolution_clock::now();
+    #endif
+    #pragma omp parallel for collapse(2)
     for (int x = 0; x < nx; ++x) {
         for (int y = 0; y < ny; ++y) {
             for (int z = 0; z < nz; ++z) {
@@ -98,10 +104,28 @@ inline VoxelGrid<bool> mesh_to_binary_grid(const FastMesh& mesh, int div, int pa
         }
     }
 
+    #ifdef MULTISPHERE_DEBUG
+        auto end_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end_time - start_time;
+        std::cout << "[Voxelizer] Query points generated in " << elapsed.count() << " seconds." << std::endl;
+    #endif
+    
+    #ifdef MULTISPHERE_DEBUG
+        start_time = std::chrono::high_resolution_clock::now();
+    #endif
     // 3. Compute Winding Number
     Eigen::VectorXf wn;
     igl::fast_winding_number(mesh.vertices, mesh.triangles, queries, wn);
 
+    #ifdef MULTISPHERE_DEBUG
+        end_time = std::chrono::high_resolution_clock::now();
+        elapsed = end_time - start_time;
+        std::cout << "[Voxelizer] Winding number computed in " << elapsed.count() << " seconds." << std::endl;
+    #endif
+
+    #ifdef MULTISPHERE_DEBUG
+        std::cout << "[Voxelizer] Winding number computed for " << queries.rows() << " query points." << std::endl;
+    #endif
     // 4. Threshold & Fill Grid
     #pragma omp parallel for
     for (int i = 0; i < wn.size(); ++i) {

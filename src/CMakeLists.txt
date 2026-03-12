@@ -8,14 +8,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_OPENMP "Use OpenMP for parallelization" ON)
 option(MULTISPHERE_DEBUG "Enable debug output for multisphere-cpp" OFF)
 
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(MULTISPHERE_DEBUG ON CACHE BOOL "Enable debug output for multisphere-cpp" FORCE)
+endif()
+
 # Optimization settings
-if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+#if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     if(MSVC)
         add_compile_options(/W4 /Ox /Oi /Ot)
     else()
         add_compile_options(-O3 -march=native)
     endif()
-endif()
+#endif()
 
 # --- Dependencies ---
 

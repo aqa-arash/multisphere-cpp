@@ -243,6 +243,101 @@ inline VoxelGrid<float> residual_distance_field(
     return residual;
 }
 
+
+/**
+ * @brief Core iterative solver to place spheres based on distance fields and residuals.
+ */
+inline Eigen::MatrixX4f compute_sphere_table(
+    const VoxelGrid<float>& original_distance,
+    const VoxelGrid<uint8_t>& voxel_grid,
+    VoxelGrid<uint8_t>& recon_mask,
+    std::optional<Eigen::MatrixX4f> sphere_table_in,
+    int min_center_distance_vox,
+    std::optional<int> min_radius_vox,
+    std::optional<float> precision_target,
+    std::optional<int> max_spheres,
+    bool show_progress
+) {
+    Eigen::MatrixX4f sphere_table = sphere_table_in.value_or(Eigen::MatrixX4f(0, 4));
+
+    // Solver State
+    int max_iter = 3, iter = 1, prev_count = 0;
+    float weight_factor = 1.0f;
+    bool peaks_found = false;
+
+    // =========================================================================
+    // Pre-Loop Initialization
+    // =========================================================================
+    // If we start with an existing table, initialize the mask immediately.
+    if (sphere_table.rows() > 0) {
+        spheres_to_grid<uint8_t>(recon_mask, sphere_table);
+        prev_count = sphere_table.rows();
+        peaks_found = true;
+    }
+
+    // Temporary memory buffers scoped only to the solver
+    VoxelGrid<float> residual(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
+    VoxelGrid<float> summed_field(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
+
+    while (iter <= max_iter) {
+        if (max_spheres.has_value() && sphere_table.rows() >= *max_spheres) {
+            if (show_progress) std::cout << "Reached maximum number of spheres. Terminating." << std::endl;
+            break;
+        }
+
+        // A. Update Fields & Check Precision
+        if (sphere_table.rows() > 0) {
+            if (peaks_found) {
+                iter = 1;
+                float percision = compute_voxel_precision(voxel_grid, recon_mask);
+                if (show_progress) {
+                    std::cout << "weight " << weight_factor << " Total spheres " << sphere_table.rows() << " Precision: " << percision << std::endl;
+                    }
+
+                if (precision_target.has_value() && compute_voxel_precision(voxel_grid, recon_mask) >= *precision_target) {
+                    if (show_progress) std::cout << "Reached target precision. Terminating." << std::endl;
+                    break;
+                }
+                
+
+                residual = residual_distance_field(original_distance, recon_mask.distance_transform());
+            }
+
+            #pragma omp parallel for
+            for (size_t i = 0; i < summed_field.data.size(); ++i) {
+                summed_field.data[i] = original_distance.data[i] + residual.data[i] * weight_factor;
+            }
+        } else {
+            summed_field.data = original_distance.data;
+        }
+
+        // B. Peak Detection & Filtering
+        Eigen::MatrixX4f peaks = peak_local_max_3d(summed_field, original_distance, min_center_distance_vox, min_radius_vox.value_or(1));
+        peaks = filter_and_shift_peaks(peaks, sphere_table, summed_field, min_center_distance_vox);
+
+        // C. Iteration Flow Control
+        if (peaks.rows() == 0) {
+            peaks_found = false;
+            ++iter; 
+            ++weight_factor;
+            continue;
+        }
+        
+        peaks_found = true;
+        prev_count = sphere_table.rows();
+        append_sphere_table(sphere_table, peaks, max_spheres);
+        spheres_to_grid<uint8_t>(recon_mask, sphere_table.block(prev_count, 0, sphere_table.rows() - prev_count, 4));
+
+    }
+
+    return sphere_table;
+}
+
+
+
+
+
+
 } // namespace MSS
 
 #endif // MULTISPHERE_RECONSTRUCTION_HELPERS_HPP

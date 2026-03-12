@@ -49,16 +49,24 @@ int main() {
             400,    // div
             2,      // padding
             10,     // min_center_distance_vox
-            4,      // min_radius_vox
-            0.99,   // precision_target
-            100000, // max_spheres
+            12,      // min_radius_vox
+            0.90,   // precision_target
+            100, // max_spheres
             true,   // show_progress
-            false   // confine_mesh
+            false,   // confine_mesh
+            std::nullopt, // sphere_table
+            true    // compute_physics
         );
 
         std::cout << "\nReconstruction Complete!" << std::endl;
         std::cout << "--Single Sphere : \n Spheres found: " << single_sp.num_spheres() << std::endl;
         std::cout << "Max radius: " << single_sp.max_radius() << " units" << std::endl;
+        std::cout << "Min radius: " << single_sp.min_radius() << " units" << std::endl;
+        std::cout << "Volume of union: " << single_sp.volume << " units^3" << std::endl;
+        std::cout << "Center of mass: " << single_sp.center_of_mass.transpose() << " units" << std::endl;
+        std::cout << "Principal moments: " << single_sp.principal_moments.transpose() << " units^5" << std::endl;
+        std::cout << "Principal axes:\n" << single_sp.principal_axes << std::endl;
+        
 
         // 3. Visualization or Export
 

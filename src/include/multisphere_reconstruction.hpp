@@ -26,6 +26,7 @@
 #include "multisphere_reconstruction_helpers.hpp"
 #include "multisphere_io.hpp"
 #include "multisphere_mesh_handler.hpp"
+#include "multisphere_physics_computation.hpp"
 
 namespace MSS {
 
@@ -40,6 +41,7 @@ namespace MSS {
  * @param max_spheres Maximum number of spheres.
  * @param show_progress Show progress output.
  * @param sphere_table_in Optional initial sphere table.
+ * @param compute_physics Whether to compute physical properties of the multisphere union.
  * @return SpherePack reconstruction result.
  */
 template <typename T>
@@ -50,7 +52,8 @@ SpherePack multisphere_from_voxels(
     std::optional<float> precision_target = std::nullopt,
     std::optional<int> max_spheres = std::nullopt,
     bool show_progress = true,
-    std::optional<Eigen::MatrixX4f> sphere_table_in = std::nullopt
+    std::optional<Eigen::MatrixX4f> sphere_table_in = std::nullopt,
+    bool compute_physics = false
 ) {
 
 
@@ -97,131 +100,59 @@ SpherePack multisphere_from_voxels(
     }
     #endif
 
-    int max_iter = 3; // [DEBUG] Max iteration for residual scaling
-    int iter = 1;
-    float weight_factor = 1.0f; // [DEBUG] Initial weight factor for residual
     VoxelGrid<uint8_t> recon_mask(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
-    VoxelGrid<float> residual(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
 
-    int prev_count = 0;
-    bool peaks_found = true;
-    while (iter <= max_iter) {
+    // iterative solver to compute sphere table
+    Eigen::MatrixX4f final_sphere_table = compute_sphere_table(
+        original_distance,
+        voxel_grid,
+        recon_mask,
+        sphere_table,
+        min_center_distance_vox,
+        min_radius_vox,
+        precision_target,
+        max_spheres,
+        show_progress
+        );
 
-        #ifdef MULTISPHERE_DEBUG
-             std::cout << "Iteration " << iter << ": Current spheres = " << sphere_table.rows() << std::endl;
-        #endif
-        // Termination: Max Spheres
-        if (max_spheres.has_value() && sphere_table.rows() >= *max_spheres) break;
 
-        VoxelGrid<float> summed_field(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz());
-
-        if (sphere_table.rows() > 0) {
-            if (peaks_found) {
-                iter = 1; // Reset iteration if we found peaks in the last round
-                spheres_to_grid<uint8_t>(
-                    recon_mask,
-                    sphere_table.block(prev_count, 0, sphere_table.rows() - prev_count, 4)
-                );
-
-                // Termination: Precision
-                if (precision_target.has_value()) {
-                    float current_precision = compute_voxel_precision(voxel_grid, recon_mask);
-                    if (show_progress) {
-                        std::cout << "Weight factor = " << weight_factor << " #spheres = " << sphere_table.rows() << " Precision = " << current_precision << std::endl;
-                    }
-                    if (current_precision >= *precision_target) {
-                        if (show_progress) {
-                            std::cout << "Reached target precision of " << *precision_target << ". Terminating." << std::endl;
-                        }
-                        break;
-                    }
-                }
-
-                VoxelGrid<float> spheres_distance = recon_mask.distance_transform();
-                residual = residual_distance_field(original_distance, spheres_distance);
-            }
-
-            // summed_field = distance_field + residual
-            #pragma omp parallel for
-            for (size_t i = 0; i < summed_field.data.size(); ++i) {
-                summed_field.data[i] = original_distance.data[i] + residual.data[i] * weight_factor;
-            }
-        } else {
-            summed_field.data = original_distance.data;
-        }
-
-        // 2. Peak Detection
-        Eigen::MatrixX4f peaks = peak_local_max_3d(summed_field, original_distance, min_center_distance_vox, min_radius_vox.value_or(1));
-
-        // 3. Filter Peaks
-        peaks = filter_and_shift_peaks(peaks, sphere_table, original_distance, min_center_distance_vox);
-        if (peaks.rows() == 0) {
-            #ifdef MULTISPHERE_DEBUG
-                std::cout << " No peaks found after filtering, for iter = " << iter << std::endl;
-            #endif
-            if (iter >= max_iter) {
-                std::cout << "No peaks found after filtering, terminating." << std::endl;
-                break;
-            } else {
-                peaks_found = false;
-                ++iter;
-                ++weight_factor; // [DEBUG] Increase weight factor to encourage new peaks
-                #ifdef MULTISPHERE_DEBUG
-                    std::cout << " Continuing to next iteration." << std::endl;
-                #endif
-                continue;
-            }
-        }
-        peaks_found = true;
-
-        #ifdef MULTISPHERE_DEBUG
-        // [DEBUG] Peaks after filtering
-        std::cout << " Peaks after Filtering: " << peaks.rows() << std::endl;
-        std::cout << " Sample Peak Radii after Filtering: ";
-        for (int i = 0; i < std::min(5, int(peaks.rows())); ++i) {
-            std::cout << "x = " << peaks(i, 0) << ", y = " << peaks(i, 1) << ", z = " << peaks(i, 2) << ", r = " << peaks(i, 3) << "\n";
-        }
-        std::cout << std::endl;
-        #endif
-        // 4. Append Spheres
-        prev_count = sphere_table.rows();
-        append_sphere_table(sphere_table, peaks, max_spheres);
-
-        if (min_radius_vox.has_value() && sphere_table.rows() == prev_count) {
-            #ifdef MULTISPHERE_DEBUG
-                std::cout << " No new spheres added that meet min_radius_vox. Terminating." << std::endl;
-            #endif
-            break;
-        }
-    }
     #ifdef MULTISPHERE_DEBUG
         // [DEBUG] Final spheres
-        std::cout << "Final Spheres: " << sphere_table.rows() << std::endl;
+        std::cout << "Final Spheres: " << final_sphere_table.rows() << std::endl;
         std::cout << " Sample Sphere Radii: ";
-        for (int i = 0; i < std::min(5, int(sphere_table.rows())); ++i) {
-            std::cout << "x = " << sphere_table(i, 0) << ", y = " << sphere_table(i, 1) << ", z = " << sphere_table(i, 2) << ", r = " << sphere_table(i, 3) << "\n";
+        for (int i = 0; i < std::min(5, int(final_sphere_table.rows())); ++i) {
+            std::cout << "x = " << final_sphere_table(i, 0) << ", y = " << final_sphere_table(i, 1) << ", z = " << final_sphere_table(i, 2) << ", r = " << final_sphere_table(i, 3) << "\n";
         }
         std::cout << std::endl;
     #endif
-    // Convert Table to SpherePack (Physical units)
-    Eigen::MatrixX3f centers_phys(sphere_table.rows(), 3);
-    Eigen::VectorXf radii_phys(sphere_table.rows());
 
-    for (int i = 0; i < sphere_table.rows(); ++i) {
-        Eigen::Vector3f pos_vox = sphere_table.block<1, 3>(i, 0).transpose();
+    // Convert Table to SpherePack (Physical units)
+    Eigen::MatrixX3f centers_phys(final_sphere_table.rows(), 3);
+    Eigen::VectorXf radii_phys(final_sphere_table.rows());
+
+    for (int i = 0; i < final_sphere_table.rows(); ++i) {
+        Eigen::Vector3f pos_vox = final_sphere_table.block<1, 3>(i, 0).transpose();
         centers_phys.row(i) = voxel_grid.origin + (pos_vox.array() + 0.5f).matrix() * voxel_grid.voxel_size;
-        radii_phys(i) = (sphere_table(i, 3)) * voxel_grid.voxel_size;
+        radii_phys(i) = (final_sphere_table(i, 3)) * voxel_grid.voxel_size;
     }
 
     #ifdef MULTISPHERE_DEBUG
         // [DEBUG] Final sphere sample (physical units)
         std::cout << "[DEBUG] Final Sphere Sample (Physical Units):" << std::endl;
-        for (int i = 0; i < std::min(5, int(sphere_table.rows())); ++i) {
+        for (int i = 0; i < std::min(5, int(final_sphere_table.rows())); ++i) {
             std::cout << "x = " << centers_phys(i, 0) << ", y = " << centers_phys(i, 1) << ", z = " << centers_phys(i, 2) << ", r = " << radii_phys(i) << "\n";
         }
         std::cout << std::endl;
     #endif
-    return SpherePack(centers_phys, radii_phys);
+
+    SpherePack result(centers_phys, radii_phys);
+    if (compute_physics) {
+        // Compute physical properties of the multisphere union
+        compute_multisphere_physics(result, recon_mask);
+    }
+    
+
+    return result;
 }
 
 /**
@@ -237,6 +168,7 @@ SpherePack multisphere_from_voxels(
  * @param show_progress Show progress output.
  * @param confine_mesh Confine spheres to mesh boundary.
  * @param sphere_table Optional initial sphere table.
+ * @param compute_physics Whether to compute physical properties of the multisphere union.
  * @return SpherePack reconstruction result.
  */
 SpherePack multisphere_from_mesh(
@@ -249,7 +181,9 @@ SpherePack multisphere_from_mesh(
     std::optional<int> max_spheres = std::nullopt,
     bool show_progress = true,
     bool confine_mesh = false,
-    std::optional<Eigen::MatrixX4f> sphere_table = std::nullopt
+    std::optional<Eigen::MatrixX4f> sphere_table = std::nullopt,
+    bool compute_physics = false
+
 ) {
     if (mesh.is_empty()) {
         throw std::runtime_error("Cannot reconstruct from an empty mesh.");
@@ -257,6 +191,9 @@ SpherePack multisphere_from_mesh(
 
     // 1. Convert to VoxelGrid
     VoxelGrid<bool> voxel_grid = mesh_to_binary_grid(mesh, div, padding);
+    #ifdef MULTISPHERE_DEBUG    
+        std::cout << "Voxel grid created from mesh: " << voxel_grid.nx() << "x" << voxel_grid.ny() << "x" << voxel_grid.nz() << std::endl;
+    #endif
 
     SpherePack sp;
     if (sphere_table.has_value()) {
@@ -273,6 +210,10 @@ SpherePack multisphere_from_mesh(
         sphere_table_vox.block(0, 0, sphere_table->rows(), 3) = centers_vox;
         sphere_table_vox.col(3) = radii_vox;
 
+        #ifdef MULTISPHERE_DEBUG
+        std::cout << "Converted initial sphere table to voxel units for reconstruction." << std::endl;
+        #endif
+
         sp = multisphere_from_voxels(
             voxel_grid,
             min_center_distance_vox,
@@ -280,7 +221,8 @@ SpherePack multisphere_from_mesh(
             precision,
             max_spheres,
             show_progress,
-            sphere_table_vox
+            sphere_table_vox,
+            compute_physics
         );
     } else {
         #ifdef MULTISPHERE_DEBUG
@@ -292,7 +234,9 @@ SpherePack multisphere_from_mesh(
             min_radius_vox,
             precision,
             max_spheres,
-            show_progress
+            show_progress, 
+            std::nullopt,
+            compute_physics
         );
     }
 
@@ -304,6 +248,7 @@ SpherePack multisphere_from_mesh(
     return sp;
 }
 
-#endif // MULTISPHERE_RECONSTRUCTION_HPP
 
 } // namespace MSS
+
+#endif // MULTISPHERE_RECONSTRUCTION_HPP

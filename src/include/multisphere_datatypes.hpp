@@ -47,6 +47,13 @@ struct SpherePack {
     Eigen::MatrixX3f centers; ///< Sphere centers (Nx3)
     Eigen::VectorXf radii;    ///< Sphere radii (N)
 
+    // Global Physical Properties of the Multisphere Union
+    float volume = 0.0f;
+    Eigen::Vector3f center_of_mass = Eigen::Vector3f::Zero();
+    Eigen::Matrix3f inertia_tensor = Eigen::Matrix3f::Zero();
+    Eigen::Matrix3f principal_axes = Eigen::Matrix3f::Identity();
+    Eigen::Vector3f principal_moments = Eigen::Vector3f::Zero();
+
     SpherePack(Eigen::MatrixX3f c = Eigen::MatrixX3f(0, 3), Eigen::VectorXf r = Eigen::VectorXf(0)) 
         : centers(std::move(c)), radii(std::move(r)) {
         if (centers.rows() != radii.size()) {
@@ -122,16 +129,8 @@ public:
                 true, num_threads, nullptr
             );
         } else {
-            // Multi-label mode: Pass the raw templated data directly
-            // The EDT library uses 0 as universal background and >0 as distinct boundaries
-            dists = edt::edt<T>(
-                const_cast<T*>(this->data.data()), 
-                static_cast<int>(shape[2]), 
-                static_cast<int>(shape[1]), 
-                static_cast<int>(shape[0]), 
-                1.0f, 1.0f, 1.0f, 
-                true, num_threads, nullptr
-            );
+            // skip for now, as we currently only use binary mode. Future: implement multi-label EDT if needed.
+            throw std::runtime_error("Non-binary EDT mode not implemented yet.");
         }
         
         #pragma omp parallel for
