@@ -75,7 +75,7 @@ inline Eigen::MatrixX4f peak_local_max_3d(
             for (int y = 0; y < ny; ++y) {
                 for (int z = 0; z < nz; ++z) {
                     float val = field(x, y, z);
-                    float radius = original_distance(x, y, z);
+                    float radius = original_distance(x, y, z)+0.5f; // Add 0.5 to convert from distance to radius in voxel units
 
                     if (radius < min_radius_vox) continue;
                     if (val <= 1.0f) continue;

@@ -61,10 +61,7 @@ SpherePack multisphere_from_voxels(
     if (config.initial_sphere_table.has_value()) {
         sphere_table = *config.initial_sphere_table;
         std::cout << "Using provided initial sphere table with " << sphere_table.rows() << " spheres." << std::endl;
-    } else {
-        std::cout << "No initial sphere table provided. Starting with empty table." << std::endl;
-    }
-
+    } 
     
     if (config.min_center_distance_vox <= 1) {
         throw std::invalid_argument("min_center_distance_vox must be greater than 1 to avoid numerical issues.");

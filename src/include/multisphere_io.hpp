@@ -31,6 +31,14 @@ inline FastMesh load_mesh_fast(const std::string& path) {
     std::ifstream file(path, std::ios::binary);
     if (!file) throw std::runtime_error("File not found: " + path);
 
+    // Read the first 5 characters to check for ASCII
+    char header_check[6] = {0};
+    file.read(header_check, 5);
+    if (std::string(header_check) == "solid") {
+    throw std::runtime_error("ASCII STL not supported. Please provide a Binary STL.");    
+    }
+
+
     // Skip Header
     file.seekg(80);
     uint32_t num_triangles;
