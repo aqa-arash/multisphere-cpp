@@ -10,6 +10,13 @@ option(USE_OPENMP "Use OpenMP for parallelization" ON)
 option(MULTISPHERE_DEBUG "Enable console debug prints (MULTISPHERE_DEBUG macro)" OFF)
 option(MULTISPHERE_BUILD_EXAMPLES "Build example executables" ON)
 
+# --- Default Build Type to Release ---
+# This ensures optimizations are active even if the user forgets -DCMAKE_BUILD_TYPE=Release
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "No build type selected, defaulting to Release for maximum performance.")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 # --- Dependencies ---
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
