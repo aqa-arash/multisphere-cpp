@@ -222,7 +222,7 @@ int main() {
     std::cout << "[2/3] Running reconstruction..." << std::endl;
 
     MSS::MultisphereConfig config;
-        config.min_center_distance_vox = 4;
+        config.search_window = 4;
         config.min_radius_vox = 2;
         config.precision_target = 0.95f;
         config.max_spheres = 10;

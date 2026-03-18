@@ -124,7 +124,7 @@ int main() {
     
     // 4. Reconstruction
     MSS::MultisphereConfig config3;
-    config3.min_center_distance_vox = 10;
+    config3.search_window = 10;
     config3.min_radius_vox = 20;
     config3.precision_target = 0.99f;
     config3.max_spheres = 100000;
@@ -233,7 +233,7 @@ int main() {
 
     // 4. Reconstruction
     MSS::MultisphereConfig config2;
-    config2.min_center_distance_vox = center_distance + 2;
+    config2.search_window = center_distance + 2;
     config2.min_radius_vox = 20;
     config2.precision_target = 0.99f;
     config2.max_spheres = 100000;
@@ -346,7 +346,7 @@ int main() {
     
     // 4. Reconstruction
         MSS::MultisphereConfig config;
-        config.min_center_distance_vox = 10;
+        config.search_window = 10;
         config.min_radius_vox = 20;
         config.precision_target = 0.99f;
         config.max_spheres = 100000;

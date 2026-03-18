@@ -79,7 +79,7 @@ int main() {
         // 5. Reconstruction
 
         MSS::MultisphereConfig config;
-        config.min_center_distance_vox = 2;
+        config.search_window = 2;
         config.min_radius_vox = 2;
         config.precision_target = 0.99f;
         config.max_spheres = 100000;

@@ -13,16 +13,13 @@
  * @date 2026-03-10
  */
 
-
-
-
+#include "multisphere_config.hpp"
 #include "multisphere_datatypes.hpp"
 #include "multisphere_io.hpp"
 #include "multisphere_mesh_handler.hpp"
 #include "multisphere_reconstruction_helpers.hpp"
 #include "multisphere_reconstruction.hpp"
 #include "multisphere_voxel_processing.hpp"
-#include "multisphere_config.hpp"
 
 namespace MSS {
 
@@ -137,6 +134,15 @@ inline float get_min_AABB(const FastMesh & mesh);
  * @return Filtered sphere table containing only the primary connected component.
  */
 inline Eigen::MatrixX4f filter_largest_sphere_network(const Eigen::MatrixX4f& sphere_table);
+
+
+/**
+ * @brief Compute physical properties of the multisphere union based on the input voxel grid.
+ * @param pack SpherePack for which to compute properties.
+ * @param voxelGrid Input binary voxel grid.
+ */
+inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_t>& voxelGrid); 
+
 
 } // namespace MSS
 

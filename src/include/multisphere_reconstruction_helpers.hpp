@@ -23,6 +23,7 @@
     #include <omp.h>
 #endif
 #include "multisphere_datatypes.hpp"
+#include "multisphere_config.hpp"
 #include "multisphere_io.hpp"
 #include "multisphere_voxel_processing.hpp"
 
@@ -59,8 +60,8 @@ struct PeakEntry {
 inline Eigen::MatrixX4f peak_local_max_3d(
     const VoxelGrid<float>& field,
     const VoxelGrid<float>& original_distance,
-    int min_distance = 2,
-    int min_radius_vox = 1)
+    const VoxelGrid<uint8_t>& overlap_mask,
+    MultisphereConfig config)
 {
     std::vector<Eigen::Vector4f> peaks;
     int nx = (int)field.nx();
@@ -76,18 +77,17 @@ inline Eigen::MatrixX4f peak_local_max_3d(
                 for (int z = 0; z < nz; ++z) {
                     float val = field(x, y, z);
                     // mathematically exact half-diagonal of a unit cube: sqrt(3) / 2
-                    constexpr float VOXEL_HALF_DIAG = 0.86602540378f; 
-                    float radius = original_distance(x, y, z) + VOXEL_HALF_DIAG;
-                    
+                    float radius = original_distance(x, y, z) + config.radius_offset_vox;
 
-                    if (radius < min_radius_vox) continue;
+                    if (radius < config.min_radius_vox) continue;
                     if (val <= 1.0f) continue;
+                    if (overlap_mask(x, y, z) > 0) continue; // Skip if within overlap region
 
                     bool is_max = true;
                     // Check local neighborhood
-                    for (int dx = -min_distance; is_max && dx <= min_distance; ++dx) {
-                        for (int dy = -min_distance; is_max && dy <= min_distance; ++dy) {
-                            for (int dz = -min_distance; is_max && dz <= min_distance; ++dz) {
+                    for (int dx = -config.search_window; is_max && dx <= config.search_window; ++dx) {
+                        for (int dy = -config.search_window; is_max && dy <= config.search_window; ++dy) {
+                            for (int dz = -config.search_window; is_max && dz <= config.search_window; ++dz) {
                                 int nx_idx = x + dx, ny_idx = y + dy, nz_idx = z + dz;
                                 if (nx_idx >= 0 && nx_idx < nx && ny_idx >= 0 && ny_idx < ny && nz_idx >= 0 && nz_idx < nz) {
                                     if (field(nx_idx, ny_idx, nz_idx) > val) is_max = false;
@@ -130,17 +130,17 @@ inline Eigen::MatrixX4f peak_local_max_3d(
  * @param peaks Candidate peaks (Nx4 matrix).
  * @param sphere_table History table of accepted spheres.
  * @param distance_field Distance field for sub-voxel shifting.
- * @param min_center_distance_vox Minimum allowed center distance.
+ * @param config Configuration parameters.
  * @return Filtered peaks as Nx4 matrix (x, y, z, radius).
  */
 inline Eigen::MatrixX4f filter_and_shift_peaks(
     const Eigen::MatrixX4f& peaks,
     const Eigen::MatrixX4f& sphere_table,
     VoxelGrid<float>& distance_field,
-    int min_center_distance_vox)
+    MultisphereConfig config)
 {
     if (peaks.rows() == 0) return peaks;
-    const float min_dist_sq = (float)(min_center_distance_vox * min_center_distance_vox);
+    const float min_dist_sq = (float)(config.min_center_distance_rel * config.min_center_distance_rel);
     std::vector<Eigen::Vector4f> accepted_spheres;
     accepted_spheres.reserve(peaks.rows());
 
@@ -150,7 +150,8 @@ inline Eigen::MatrixX4f filter_and_shift_peaks(
         float pz = peaks(i, 2);
 
         bool collision = false;
-        // Check against history
+        // Check against history not needed due to overlap mask, but can be kept for extra safety if desired
+        /*
         for (int j = 0; j < sphere_table.rows(); ++j) {
             float hx = (float)sphere_table(j, 0);
             float hy = (float)sphere_table(j, 1);
@@ -162,14 +163,14 @@ inline Eigen::MatrixX4f filter_and_shift_peaks(
                 collision = true;
                 break;
             }
-        }
+        }*/
         // Check self-collision
         if (!collision) {
             for (const auto& sphere : accepted_spheres) {
                 float dx = px - sphere[0];
                 float dy = py - sphere[1];
                 float dz = pz - sphere[2];
-                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq) {
+                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq * sphere[3] * sphere[3]) { // Scale by radius to allow closer placement of smaller spheres
                     collision = true;
                     break;
                 }
@@ -440,17 +441,12 @@ inline Eigen::MatrixX4f compute_sphere_table(
     const VoxelGrid<float>& original_distance,
     const VoxelGrid<uint8_t>& voxel_grid,
     VoxelGrid<uint8_t>& recon_mask,
-    std::optional<Eigen::MatrixX4f> sphere_table_in,
-    int min_center_distance_vox,
-    std::optional<int> min_radius_vox,
-    std::optional<float> precision_target,
-    std::optional<int> max_spheres,
-    bool show_progress
+    MultisphereConfig config
 ) {
-    Eigen::MatrixX4f sphere_table = sphere_table_in.value_or(Eigen::MatrixX4f(0, 4));
+    Eigen::MatrixX4f sphere_table = config.initial_sphere_table.value_or(Eigen::MatrixX4f(0, 4));
 
     // Solver State
-    int max_iter = 3, iter = 1, prev_count = 0;
+    int max_iter = config.persistence, iter = 1, prev_count = 0;
     float weight_factor = 1.0f;
     bool peaks_found = false;
 
@@ -458,9 +454,11 @@ inline Eigen::MatrixX4f compute_sphere_table(
     // Pre-Loop Initialization
     // =========================================================================
     // If we start with an existing table, initialize the mask immediately.
+    VoxelGrid<uint8_t> overlap_mask(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
     if (sphere_table.rows() > 0) {
         spheres_to_grid<uint8_t>(recon_mask, sphere_table);
         prev_count = sphere_table.rows();
+        spheres_to_grid<uint8_t>(overlap_mask, sphere_table, 1,  config.min_center_distance_rel);
         peaks_found = true;
     }
 
@@ -469,8 +467,8 @@ inline Eigen::MatrixX4f compute_sphere_table(
     VoxelGrid<float> summed_field(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
 
     while (iter <= max_iter) {
-        if (max_spheres.has_value() && sphere_table.rows() >= *max_spheres) {
-            if (show_progress) std::cout << "Reached maximum number of spheres. Terminating." << std::endl;
+        if (config.max_spheres.has_value() && sphere_table.rows() >= *config.max_spheres) {
+            if (config.show_progress) std::cout << "Reached maximum number of spheres. Terminating." << std::endl;
             break;
         }
 
@@ -478,17 +476,16 @@ inline Eigen::MatrixX4f compute_sphere_table(
         if (sphere_table.rows() > 0) {
             if (peaks_found) {
                 iter = 1;
-                float percision = compute_voxel_precision(voxel_grid, recon_mask);
-                if (show_progress) {
-                    std::cout << " -Weight = " << weight_factor << " -Total spheres = " << sphere_table.rows() << " -Precision = " << percision << std::endl;
+                float precision = compute_voxel_precision(voxel_grid, recon_mask);
+                if (config.show_progress) {
+                    std::cout << " -Weight = " << weight_factor << " -Total spheres = " << sphere_table.rows() << " -Precision = " << precision << std::endl;
                     }
 
-                if (precision_target.has_value() && compute_voxel_precision(voxel_grid, recon_mask) >= *precision_target) {
-                    if (show_progress) std::cout << "Reached target precision. Terminating." << std::endl;
+                if (config.precision_target.has_value() && compute_voxel_precision(voxel_grid, recon_mask) >= *config.precision_target) {
+                    if (config.show_progress) std::cout << "Reached target precision. Terminating." << std::endl;
                     break;
                 }
-                
-
+                spheres_to_grid<uint8_t>(overlap_mask, sphere_table.block(prev_count, 0, sphere_table.rows() - prev_count, 4), 1, config.min_center_distance_rel);
                 residual = residual_distance_field(original_distance, recon_mask.distance_transform());
             }
 
@@ -501,8 +498,8 @@ inline Eigen::MatrixX4f compute_sphere_table(
         }
 
         // B. Peak Detection & Filtering
-        Eigen::MatrixX4f peaks = peak_local_max_3d(summed_field, original_distance, min_center_distance_vox, min_radius_vox.value_or(1));
-        peaks = filter_and_shift_peaks(peaks, sphere_table, summed_field, min_center_distance_vox);
+        Eigen::MatrixX4f peaks = peak_local_max_3d(summed_field, original_distance, overlap_mask, config);
+        peaks = filter_and_shift_peaks(peaks, sphere_table, summed_field,config);
 
         // C. Iteration Flow Control
         if (peaks.rows() == 0) {
@@ -514,18 +511,13 @@ inline Eigen::MatrixX4f compute_sphere_table(
         
         peaks_found = true;
         prev_count = sphere_table.rows();
-        append_sphere_table(sphere_table, peaks, max_spheres);
+        append_sphere_table(sphere_table, peaks, config.max_spheres);
         spheres_to_grid<uint8_t>(recon_mask, sphere_table.block(prev_count, 0, sphere_table.rows() - prev_count, 4));
 
     }
 
     return sphere_table;
 }
-
-
-
-
-
 
 } // namespace MSS
 

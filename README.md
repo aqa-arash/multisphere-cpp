@@ -215,11 +215,22 @@ int main() {
 You can visualize the output files using external tools such as [ParaView](https://www.paraview.org/) (for VTK), [MeshLab](https://www.meshlab.net/) (for STL), or any spreadsheet software (for CSV).  
 No runtime visualization is included in this library.
 
+
+### Details of the config 
+
+    persistence (int): > Defines the solver's "patience" when it stops finding new features.
+
+        Value = 1: The solver stops immediately if a standard search finds no new peaks.
+
+        Value > 1: If no peaks are found, the solver will amplify the missing details and retry up to N times.
+
+        Recommendation: Use higher values for complex geometries where small details are hard to detect at base resolution.
+
 ---
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0.
+The core of this project is licensed under the MIT License. However, it includes third-party components located in the third_party/ directory that are subject to the LGPLv3 and MPLv2 licenses.
 
 See the `LICENSE` file for full details.
 
@@ -229,7 +240,13 @@ See the `LICENSE` file for full details.
 | :--- | :--- | :--- |
 | **Eigen** | MPL2 | C++ Math |
 | **libigl** | MPL2 | C++ Voxelization |
-| **edt** | MIT | C++ Distance Transform |
+| **edt** | LGPL3 | C++ Distance Transform |
+
+If you are building a commercial or closed-source application and wish to avoid LGPLv3 obligations in your final executable, you have two options:
+
+    Dynamic Linking: Do not use the header-only version of the EDT component. Instead, compile the EDT code into a separate shared library (.so or .dll) and link to it dynamically.
+
+    Replace the Backend: You can replace the files in third_party/edt/ with any other EDT implementation that matches the internal API but carries a permissive license.
 
 ## Author
 

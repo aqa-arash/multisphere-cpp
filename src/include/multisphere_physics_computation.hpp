@@ -28,9 +28,9 @@ namespace MSS {
  * @brief Computes volume, Center of Mass (CoM), and inertia tensor from the final voxel mask in a single pass.
  * Updates the physical properties directly inside the provided SpherePack.
  * @param pack The SpherePack object to update.
- * @param final_mask The binary voxel grid representing the multisphere union.
+ * @param voxelGrid The binary voxel grid.
  */
-inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_t>& final_mask) {
+inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_t>& voxelGrid) {
     long long N_vox = 0;
     
     // Moments accumulated in LOCAL physical space (origin subtracted)
@@ -38,16 +38,16 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
     double sum_xx = 0.0, sum_yy = 0.0, sum_zz = 0.0;
     double sum_xy = 0.0, sum_xz = 0.0, sum_yz = 0.0;
 
-    int nx = final_mask.nx();
-    int ny = final_mask.ny();
-    int nz = final_mask.nz();
-    double vs = final_mask.voxel_size;
+    int nx = voxelGrid.nx();
+    int ny = voxelGrid.ny();
+    int nz = voxelGrid.nz();
+    double vs = voxelGrid.voxel_size;
 
     #pragma omp parallel for collapse(3) reduction(+:N_vox, sum_x, sum_y, sum_z, sum_xx, sum_yy, sum_zz, sum_xy, sum_xz, sum_yz)
     for (int x = 0; x < nx; ++x) {
         for (int y = 0; y < ny; ++y) {
             for (int z = 0; z < nz; ++z) {
-                if (final_mask(x, y, z) > 0) {
+                if (voxelGrid(x, y, z) > 0) {
                     N_vox++;
                     
                     // Local physical coordinates
@@ -89,9 +89,9 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
     double cz_local = sum_z / N_vox;
 
     // 2. Shift Local CoM to GLOBAL CoM
-    pack.center_of_mass << cx_local + final_mask.origin.x(),
-                           cy_local + final_mask.origin.y(),
-                           cz_local + final_mask.origin.z();
+    pack.center_of_mass << cx_local + voxelGrid.origin.x(),
+                           cy_local + voxelGrid.origin.y(),
+                           cz_local + voxelGrid.origin.z();
 
     // 3. Parallel Axis Theorem (Calculated entirely in stable local space)
     double Ixx = (sum_yy * voxel_vol) + (sum_zz * voxel_vol) - pack.volume * (cy_local * cy_local + cz_local * cz_local);

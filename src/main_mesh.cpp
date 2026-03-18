@@ -45,10 +45,11 @@ int main() {
         MSS::MultisphereConfig config;
         config.div = 400; // Voxel grid resolution
         config.padding = 2; // Grid padding
-        config.min_center_distance_vox = 10; // Minimum center distance in voxels
+        config.search_window = 10; // Search window size
+        config.min_center_distance_rel = 0.5f; // Minimum center distance relative to radius
         config.min_radius_vox = 12; // Minimum radius in voxels
-        config.precision_target = 0.90f; // Target precision
-        config.max_spheres = 10; // Maximum number of spheres
+        config.precision_target = 0.99f; // Target precision
+        config.max_spheres = 10000; // Maximum number of spheres
         config.show_progress = true; // Show progress output
         config.confine_mesh = false; // Do not confine spheres to mesh boundary
         config.initial_sphere_table = std::nullopt; // No initial sphere table

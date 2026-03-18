@@ -188,26 +188,6 @@ public:
     }
 };
 
-/**
- * @brief Vertex key for hashing.
- */
-struct VertexKey {
-    float x, y, z;
-    bool operator==(const VertexKey& other) const {
-        return x == other.x && y == other.y && z == other.z;
-    }
-};
-
-/**
- * @brief Hash function for VertexKey.
- */
-struct VertexKeyHash {
-    std::size_t operator()(const VertexKey& k) const {
-        return std::hash<float>()(k.x) ^ 
-              (std::hash<float>()(k.y) << 1) ^ 
-              (std::hash<float>()(k.z) << 2);
-    }
-};
 
 // Helper struct for the Sort-and-Sweep algorithm
 struct RawVertex {

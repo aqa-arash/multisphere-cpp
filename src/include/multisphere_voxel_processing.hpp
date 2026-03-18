@@ -210,11 +210,12 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
  * @param grid Target voxel grid.
  * @param sphere_table Sphere table (Nx4 matrix: x, y, z, diameter_vox).
  * @param fill_value Value to fill inside spheres.
+ * @param coefficient Coefficient for adjusting sphere sizes.
  */
 template <typename T>
 void spheres_to_grid(VoxelGrid<T>& grid,
     const Eigen::MatrixX4f& sphere_table,
-    T fill_value = static_cast<T>(1))
+    T fill_value = static_cast<T>(1), float coefficient = 1.0f)
 {
     if (sphere_table.rows() == 0) return;
     #pragma omp parallel for
@@ -222,7 +223,7 @@ void spheres_to_grid(VoxelGrid<T>& grid,
         float cx = sphere_table(i, 0);
         float cy = sphere_table(i, 1);
         float cz = sphere_table(i, 2);
-        float radius_vox = sphere_table(i, 3);
+        float radius_vox = sphere_table(i, 3) * coefficient;
         if (radius_vox <= 0) continue;
         grid.sphere_kernel(cx, cy, cz, radius_vox, fill_value);
     }

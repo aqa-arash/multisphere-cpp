@@ -58,13 +58,13 @@ SpherePack multisphere_from_voxels(
     VoxelGrid<uint8_t> voxel_grid(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
     Eigen::MatrixX4f sphere_table(0, 4);
 
-    if (config.initial_sphere_table.has_value()) {
-        sphere_table = *config.initial_sphere_table;
-        std::cout << "Using provided initial sphere table with " << sphere_table.rows() << " spheres." << std::endl;
-    } 
+    //if (config.initial_sphere_table.has_value()) {
+    //    sphere_table = *config.initial_sphere_table;
+    //    std::cout << "Using provided initial sphere table with " << sphere_table.rows() << " spheres." << std::endl;
+    //} 
     
-    if (config.min_center_distance_vox <= 1) {
-        throw std::invalid_argument("min_center_distance_vox must be greater than 1 to avoid numerical issues.");
+    if (config.search_window <= 1) {
+        throw std::invalid_argument("search_window must be greater than 1 to avoid numerical issues.");
     }
 
     // Convert to uint8_t grid for distance transform if needed
@@ -99,12 +99,7 @@ SpherePack multisphere_from_voxels(
         original_distance,
         voxel_grid,
         recon_mask,
-        sphere_table,
-        config.min_center_distance_vox,
-        config.min_radius_vox,
-        config.precision_target,
-        config.max_spheres,
-        config.show_progress
+        config
         );
 
     #ifdef MULTISPHERE_DEBUG
