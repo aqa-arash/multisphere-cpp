@@ -15,9 +15,9 @@
 #include <Eigen/Dense>
 
 // Project headers
-#include "multisphere-interface.h"
+#include "GEMSS/GEMSS-interface.h"
 
-using namespace MSS;
+using namespace GEMSS;
 
 /**
  * @brief Entry point for mesh-based multisphere reconstruction.
@@ -42,7 +42,7 @@ int main() {
         // std::cout << "[DEBUG] Check 'debug_output.stl' against 'input_mesh.stl' now." << std::endl;
 
         // 2. Run the Reconstruction Algorithm
-        MSS::MultisphereConfig config;
+        GEMSS::MultisphereConfig config;
         config.div = 400; // Voxel grid resolution
         config.padding = 2; // Grid padding
         config.search_window = 10; // Search window size

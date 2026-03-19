@@ -1,6 +1,5 @@
-
-#ifndef MULTISPHERE_DATATYPES_HPP
-#define MULTISPHERE_DATATYPES_HPP
+#ifndef GEMSS_DATATYPES_HPP
+#define GEMSS_DATATYPES_HPP
 
 
 /**
@@ -26,7 +25,7 @@
 #include "thirdparty/edt.hpp" ///< High-performance C++ EDT library
 
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Mesh structure for fast voxelization.
@@ -252,4 +251,4 @@ struct RawVertex {
 
 } // namespace MSS
 
-#endif // MULTISPHERE_DATATYPES_HPP
+#endif // GEMSS_DATATYPES_HPP

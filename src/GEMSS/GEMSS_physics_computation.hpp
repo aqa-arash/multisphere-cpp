@@ -1,5 +1,5 @@
-#ifndef MULTISPHERE_PHYSICS_COMPUTATION_HPP
-#define MULTISPHERE_PHYSICS_COMPUTATION_HPP
+#ifndef GEMSS_PHYSICS_COMPUTATION_HPP
+#define GEMSS_PHYSICS_COMPUTATION_HPP
 
 /**
  * @file multisphere_physics_computation.hpp
@@ -20,9 +20,9 @@
     #include <omp.h>
 #endif
 
-#include "multisphere_datatypes.hpp"
+#include "GEMSS_datatypes.hpp"
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Computes volume, Center of Mass (CoM), and inertia tensor from the final voxel mask in a single pass.
@@ -120,5 +120,4 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
 }
 
 } // namespace MSS
-
-#endif // MULTISPHERE_PHYSICS_COMPUTATION_HPP
+#endif // GEMSS_PHYSICS_COMPUTATION_HPP

@@ -1,27 +1,29 @@
-#ifndef MULTISPHERE_INTERFACE_H
-#define MULTISPHERE_INTERFACE_H
+
 
 /**
- * @file multisphere-interface.h
- * @brief Umbrella header for the multisphere-cpp library.
+ * @file GEMSS-interface.h
+ * @brief Umbrella header for the GEMSS-cpp library.
  *
  * Includes all main data structures and user-facing API functions for mesh voxelization,
- * multisphere reconstruction, I/O, and voxel processing. Include this file to access the
+ * GEMSS reconstruction, I/O, and voxel processing. Include this file to access the
  * primary functionality of the library.
  *
  * @author Arash Moradian
  * @date 2026-03-10
  */
 
-#include "multisphere_config.hpp"
-#include "multisphere_datatypes.hpp"
-#include "multisphere_io.hpp"
-#include "multisphere_mesh_handler.hpp"
-#include "multisphere_reconstruction_helpers.hpp"
-#include "multisphere_reconstruction.hpp"
-#include "multisphere_voxel_processing.hpp"
+#ifndef GEMSS_INTERFACE_H
+#define GEMSS_INTERFACE_H
 
-namespace MSS {
+#include "GEMSS_config.hpp"
+#include "GEMSS_datatypes.hpp"
+#include "GEMSS_io.hpp"
+#include "GEMSS_mesh_handler.hpp"
+#include "GEMSS_reconstruction_helpers.hpp"
+#include "GEMSS_reconstruction.hpp"
+#include "GEMSS_voxel_processing.hpp"
+
+namespace GEMSS {
 
 // --- Main Data Structures ---
 // See multisphere_datatypes.hpp for details
@@ -134,8 +136,8 @@ inline Eigen::MatrixX4f filter_largest_sphere_network(const Eigen::MatrixX4f& sp
 inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_t>& voxelGrid); 
 
 
-} // namespace MSS
+} // namespace GEMSS
 
 
 
-#endif // MULTISPHERE_INTERFACE_H
+#endif // GEMSS_INTERFACE_H

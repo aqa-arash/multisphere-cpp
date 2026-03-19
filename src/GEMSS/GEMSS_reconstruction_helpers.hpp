@@ -1,5 +1,6 @@
-#ifndef MULTISPHERE_RECONSTRUCTION_HELPERS_HPP
-#define MULTISPHERE_RECONSTRUCTION_HELPERS_HPP
+#ifndef GEMSS_RECONSTRUCTION_HELPERS_HPP
+#define GEMSS_RECONSTRUCTION_HELPERS_HPP
+
 
 /**
  * @file multisphere_reconstruction_helpers.hpp
@@ -21,12 +22,12 @@
 #ifdef HAVE_OPENMP
     #include <omp.h>
 #endif
-#include "multisphere_datatypes.hpp"
-#include "multisphere_config.hpp"
-#include "multisphere_io.hpp"
-#include "multisphere_voxel_processing.hpp"
+#include "GEMSS_datatypes.hpp"
+#include "GEMSS_config.hpp"
+#include "GEMSS_io.hpp"
+#include "GEMSS_voxel_processing.hpp"
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Computes squared Euclidean distance between two 3D points.
@@ -506,4 +507,4 @@ inline Eigen::MatrixX4f compute_sphere_table(
 
 } // namespace MSS
 
-#endif // MULTISPHERE_RECONSTRUCTION_HELPERS_HPP
+#endif // GEMSS_RECONSTRUCTION_HELPERS_HPP

@@ -34,10 +34,10 @@ add_library(multisphere_lib INTERFACE)
 
 target_include_directories(multisphere_lib INTERFACE 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/thirdparty>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/thirdparty/igl>
-    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/GEMSS>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/GEMSS/thirdparty>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/GEMSS/thirdparty/igl>
+    $<INSTALL_INTERFACE:GEMSS>
 )
 
 target_link_libraries(multisphere_lib INTERFACE Eigen3::Eigen)
@@ -82,4 +82,4 @@ install(TARGETS multisphere_lib
     EXPORT MultisphereTargets
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY GEMSS/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

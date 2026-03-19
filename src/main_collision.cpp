@@ -17,9 +17,9 @@
 #include <Eigen/Dense>
 
 // Project headers
-#include "multisphere-interface.h"
+#include "GEMSS/GEMSS-interface.h"
 
-using namespace MSS;
+using namespace GEMSS;
 
 namespace fs = std::filesystem;
 
@@ -66,11 +66,7 @@ int main() {
         grid.sphere_kernel(center_large.x(), center_large.y(), center_large.z(), R_large, true);
         grid.sphere_kernel(center_small.x(), center_small.y(), center_small.z(), R_small, true);
 
-        // Fill the uint8 buffer for cnpy
-        for(size_t i = 0; i < grid.data.size(); ++i) {
-            if (grid.data[i]) bool_buffer[i] = 1;
-        }
-
+ 
         // 4. Distance Transform & Export
         // -----------------------------
         VoxelGrid<float> edt_grid = grid.distance_transform();
@@ -78,7 +74,7 @@ int main() {
 
         // 5. Reconstruction
 
-        MSS::MultisphereConfig config;
+        GEMSS::MultisphereConfig config;
         config.search_window = 2;
         config.min_radius_vox = 2;
         config.precision_target = 0.99f;

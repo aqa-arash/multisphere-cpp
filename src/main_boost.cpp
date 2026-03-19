@@ -17,9 +17,9 @@
 #include <Eigen/Dense>
 
 // Project headers
-#include "multisphere-interface.h"
+#include "GEMSS/GEMSS-interface.h"
 
-using namespace MSS;
+using namespace GEMSS;
 
 namespace fs = std::filesystem;
 
@@ -123,7 +123,7 @@ int main() {
 
     
     // 4. Reconstruction
-    MSS::MultisphereConfig config3;
+    GEMSS::MultisphereConfig config3;
     config3.search_window = 10;
     config3.min_radius_vox = 20;
     config3.precision_target = 0.99f;
@@ -231,7 +231,7 @@ int main() {
 
 
     // 4. Reconstruction
-    MSS::MultisphereConfig config2;
+    GEMSS::MultisphereConfig config2;
     config2.search_window = center_distance + 2;
     config2.min_radius_vox = 20;
     config2.precision_target = 0.99f;
@@ -344,7 +344,7 @@ int main() {
     
     
     // 4. Reconstruction
-        MSS::MultisphereConfig config;
+        GEMSS::MultisphereConfig config;
         config.search_window = 10;
         config.min_radius_vox = 20;
         config.precision_target = 0.99f;

@@ -1,9 +1,10 @@
-#ifndef MULTISPHERE_CONFIG_HPP
-#define MULTISPHERE_CONFIG_HPP
+#ifndef GEMSS_CONFIG_HPP
+#define GEMSS_CONFIG_HPP
+
 
 #include <Eigen/Core>
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Configuration parameters for multisphere reconstruction.
@@ -41,4 +42,4 @@ struct MultisphereConfig {
 
 } // namespace MSS
 
-#endif // MULTISPHERE_CONFIG_HPP
+#endif // GEMSS_CONFIG_HPP

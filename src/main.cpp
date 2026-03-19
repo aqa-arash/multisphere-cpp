@@ -14,9 +14,9 @@
 #include <vector>
 #include <cmath>
 #include <Eigen/Dense>
-#include "multisphere-interface.h"
+#include "GEMSS/GEMSS-interface.h"
 
-using namespace MSS;
+using namespace GEMSS;
 
 
 void print_sphere_pack_info(const SpherePack& sp) {
@@ -221,7 +221,7 @@ int main() {
     // ---------------------------------------------------
     std::cout << "[2/3] Running reconstruction..." << std::endl;
 
-    MSS::MultisphereConfig config;
+    GEMSS::MultisphereConfig config;
         config.search_window = 4;
         config.min_radius_vox = 2;
         config.precision_target = 0.95f;

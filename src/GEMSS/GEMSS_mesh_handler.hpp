@@ -1,5 +1,6 @@
-#ifndef MULTISPHERE_MESH_HANDLER_HPP
-#define MULTISPHERE_MESH_HANDLER_HPP
+#ifndef GEMSS_MESH_HANDLER_HPP
+#define GEMSS_MESH_HANDLER_HPP
+
 
 /**
  * @file multisphere_mesh_handler.hpp
@@ -26,7 +27,7 @@
 #include <omp.h>
 #endif
 
-#include "multisphere_datatypes.hpp"
+#include "GEMSS_datatypes.hpp"
 
 // Suppress specific warnings for libigl
 #if defined(__GNUC__) || defined(__clang__)
@@ -47,7 +48,7 @@
 #endif
 
 // Namespace MSS for all library code
-namespace MSS {
+namespace GEMSS {
 
 /** 
  * @brief Get the minimum axis-aligned bounding box dimension.
@@ -188,6 +189,5 @@ inline void constrain_radii_to_sdf(SpherePack& pack, const FastMesh& mesh) {
     pack.radii = pack.radii.array().min(sdf.array().abs());
 }
 
-} // namespace MSS
-
-#endif // MULTISPHERE_MESH_HANDLER_HPP
+} // namespace GEMSS
+#endif // GEMSS_MESH_HANDLER_HPP

@@ -1,5 +1,6 @@
-#ifndef MULTISPHERE_VOXEL_PROCESSING_HPP
-#define MULTISPHERE_VOXEL_PROCESSING_HPP
+#ifndef GEMSS_VOXEL_PROCESSING_HPP
+#define GEMSS_VOXEL_PROCESSING_HPP
+
 
 /**
  * @file multisphere_voxel_processing.hpp
@@ -22,9 +23,9 @@
     #include <omp.h>
 #endif
 
-#include "multisphere_datatypes.hpp"
+#include "GEMSS_datatypes.hpp"
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Kernel operation modes for voxel grid processing.
@@ -348,4 +349,4 @@ FastMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0))
 
 } // namespace MSS
 
-#endif // MULTISPHERE_VOXEL_PROCESSING_HPP
+#endif // GEMSS_VOXEL_PROCESSING_HPP

@@ -1,5 +1,6 @@
- #ifndef MULTISPHERE_IO_HPP
- #define MULTISPHERE_IO_HPP
+#ifndef GEMSS_IO_HPP
+#define GEMSS_IO_HPP
+
 
 /**
  * @file multisphere_io.hpp
@@ -18,9 +19,9 @@
 #include <filesystem>
 #include <system_error>
 #include <Eigen/Core>
-#include "multisphere_datatypes.hpp"
+#include "GEMSS_datatypes.hpp"
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Loads a mesh from a binary STL file.
@@ -263,4 +264,4 @@ inline void save_mesh_to_stl(const FastMesh& mesh, const std::string& output_pat
 
 } // namespace MSS
 
-#endif // MULTISPHERE_IO_HPP
+#endif // GEMSS_IO_HPP

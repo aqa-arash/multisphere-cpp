@@ -1,5 +1,6 @@
-#ifndef MULTISPHERE_RECONSTRUCTION_HPP
-#define MULTISPHERE_RECONSTRUCTION_HPP
+#ifndef GEMSS_RECONSTRUCTION_HPP
+#define GEMSS_RECONSTRUCTION_HPP
+
 
 /**
  * @file multisphere_reconstruction.hpp
@@ -22,14 +23,14 @@
     #include <omp.h>
 #endif
 
-#include "multisphere_datatypes.hpp"
-#include "multisphere_reconstruction_helpers.hpp"
-#include "multisphere_io.hpp"
-#include "multisphere_mesh_handler.hpp"
-#include "multisphere_physics_computation.hpp"
-#include "multisphere_config.hpp"
+#include "GEMSS_datatypes.hpp"
+#include "GEMSS_reconstruction_helpers.hpp"
+#include "GEMSS_io.hpp"
+#include "GEMSS_mesh_handler.hpp"
+#include "GEMSS_physics_computation.hpp"
+#include "GEMSS_config.hpp"
 
-namespace MSS {
+namespace GEMSS {
 
 /**
  * @brief Construct multisphere from voxel grid.
@@ -183,7 +184,7 @@ SpherePack multisphere_from_mesh(
         throw std::runtime_error("Cannot reconstruct from an empty mesh.");
     }
 
-    MSS::MultisphereConfig config_vox = config; // Make a copy to modify
+    GEMSS::MultisphereConfig config_vox = config; // Make a copy to modify
 
 
     // 1. Convert to VoxelGrid
@@ -230,5 +231,4 @@ SpherePack multisphere_from_mesh(
 
 
 } // namespace MSS
-
-#endif // MULTISPHERE_RECONSTRUCTION_HPP
+#endif // GEMSS_RECONSTRUCTION_HPP
