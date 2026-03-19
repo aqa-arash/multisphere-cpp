@@ -30,7 +30,7 @@ int main() {
     std::cout << "--- Multisphere Reconstruction Test ---" << std::endl;
 
     // List of mesh files to process
-    std::vector<std::string> models = { "stanford-bunny.stl" };
+    std::vector<std::string> models = { "example_mesh.stl" };
 
     for (const auto& model_name : models) {
         // 1. Load mesh from file
