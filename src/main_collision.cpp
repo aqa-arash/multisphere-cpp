@@ -58,7 +58,7 @@ int main() {
     for (double dist = R_large+R_small; dist >= R_large-R_small; dist -= 1.0) {
         // 3. Generate Geometry: Union of Two Spheres
         // ------------------------------------------
-        VoxelGrid<bool> grid(nx, ny, nz, v_size);
+        VoxelGrid<uint8_t> grid(nx, ny, nz, v_size);
         std::vector<uint8_t> bool_buffer(nx * ny * nz, 0);
 
         Eigen::Vector3f center_small(center_large.x() + (float)dist, center_large.y(), center_large.z());
@@ -85,8 +85,7 @@ int main() {
         config.max_spheres = 100000;
         config.show_progress = false;
         // -----------------
-        SpherePack pack = multisphere_from_voxels(grid,
-                                        config);
+        SpherePack pack = multisphere_from_voxels(grid, config);
 
         // 6. Export Results
         // -----------------

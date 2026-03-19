@@ -14,8 +14,8 @@
 
 #include <cmath>
 #include <iostream>
-#include <Eigen/Dense>
-
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #ifdef HAVE_OPENMP
     #include <omp.h>
 #endif

@@ -17,7 +17,7 @@
 #include <fstream>
 #include <filesystem>
 #include <system_error>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include "multisphere_datatypes.hpp"
 
 namespace MSS {

@@ -15,7 +15,6 @@
 #include <cmath>
 #include <iostream>
 #include <array>
-#include <Eigen/Dense>
 #include <Eigen/Core>
 #include <algorithm>
 
@@ -77,7 +76,7 @@ float get_min_AABB(const FastMesh & mesh)  {
  * @param padding Grid padding.
  * @return VoxelGrid<uint8_t> representing mesh occupancy.
  */
-inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, int div, int padding = 2) {
+inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereConfig & config ) {
     if (mesh.vertices.rows() == 0) throw std::invalid_argument("Mesh is empty.");
     // 1. Setup Grid & Bounds
     Eigen::Vector3f min_v = mesh.vertices.colwise().minCoeff().transpose();
@@ -85,13 +84,30 @@ inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, int div, int
     Eigen::Vector3f extents = max_v - min_v;
     float min_extent = extents.minCoeff();
     if (min_extent <= 1e-6) min_extent = (extents.maxCoeff() > 0 ? extents.maxCoeff() : 1.0f);
-    float voxel_size = min_extent / static_cast<float>(div);
+    float voxel_size = min_extent / static_cast<float>(config.div);
 
-    int nx = std::ceil(extents.x() / voxel_size) + 2 * padding;
-    int ny = std::ceil(extents.y() / voxel_size) + 2 * padding;
-    int nz = std::ceil(extents.z() / voxel_size) + 2 * padding;
+    if (config.minimum_radius_real > 0.0f) {
+        int min_radius_vox = static_cast<int>(std::ceil(config.minimum_radius_real / voxel_size));
+        if (min_radius_vox > 1) {
+            config.min_radius_vox = min_radius_vox;
+            #ifdef MULTISPHERE_DEBUG
+                std::cout << "[Config] Updated min_radius_vox to " << config.min_radius_vox 
+                          << " based on minimum_radius_real and voxel size." << std::endl;
+            #endif
+        }
+        else {
+            #ifdef MULTISPHERE_DEBUG
+                std::cout << "[Config] minimum_radius_real is smaller than voxel size, keeping min_radius_vox at " 
+                          << config.min_radius_vox << " voxels." << std::endl;
+            #endif
+        }
+    }
 
-    Eigen::Vector3f origin = min_v.cast<float>() - static_cast<float>(padding) * voxel_size * Eigen::Vector3f::Ones();
+    int nx = std::ceil(extents.x() / voxel_size) + 2 * config.padding;
+    int ny = std::ceil(extents.y() / voxel_size) + 2 * config.padding;
+    int nz = std::ceil(extents.z() / voxel_size) + 2 * config.padding;
+
+    Eigen::Vector3f origin = min_v.cast<float>() - static_cast<float>(config.padding) * voxel_size * Eigen::Vector3f::Ones();
     #ifdef MULTISPHERE_DEBUG
         std::cout << "[Voxelizer] Grid: " << nx << "x" << ny << "x" << nz 
                 << " | Method: Generalized Winding Number (Robust)" << std::endl;

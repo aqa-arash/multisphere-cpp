@@ -17,7 +17,7 @@
 #include <cmath>
 #include <algorithm>
 #include <type_traits>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #ifdef HAVE_OPENMP
     #include <omp.h>
 #endif
@@ -46,38 +46,23 @@ namespace MSS {
  * @param compute_physics Whether to compute physical properties of the multisphere union.
  * @return SpherePack reconstruction result.
  */
-template <typename T>
 SpherePack multisphere_from_voxels(
-    const VoxelGrid<T>& input_grid,
+    const VoxelGrid<uint8_t>& input_grid,
     const MultisphereConfig& config = MultisphereConfig()
 ) {
 
 
     
     VoxelGrid<float> original_distance(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
-    VoxelGrid<uint8_t> voxel_grid(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
     Eigen::MatrixX4f sphere_table(0, 4);
 
-    //if (config.initial_sphere_table.has_value()) {
-    //    sphere_table = *config.initial_sphere_table;
-    //    std::cout << "Using provided initial sphere table with " << sphere_table.rows() << " spheres." << std::endl;
-    //} 
     
     if (config.search_window <= 1) {
         throw std::invalid_argument("search_window must be greater than 1 to avoid numerical issues.");
     }
 
-    // Convert to uint8_t grid for distance transform if needed
-    if constexpr (std::is_same<T, uint8_t>::value) {
-        voxel_grid = input_grid;
-    } else {
-        #pragma omp parallel for
-        for (size_t i = 0; i < input_grid.data.size(); ++i) {
-            voxel_grid.data[i] = (input_grid.data[i] > static_cast<T>(0)) ? static_cast<T>(1) : static_cast<T>(0);
-        }
-    }
-
-    original_distance = voxel_grid.distance_transform();
+ 
+    original_distance = input_grid.distance_transform();
 
     #ifdef MULTISPHERE_DEBUG
     // [DEBUG] Distance field range
@@ -92,12 +77,12 @@ SpherePack multisphere_from_voxels(
     }
     #endif
 
-    VoxelGrid<uint8_t> recon_mask(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
+    VoxelGrid<uint8_t> recon_mask(input_grid.nx(), input_grid.ny(), input_grid.nz(), input_grid.voxel_size, input_grid.origin);
 
     // iterative solver to compute sphere table
     Eigen::MatrixX4f final_sphere_table = compute_sphere_table(
         original_distance,
-        voxel_grid,
+        input_grid,
         recon_mask,
         config
         );
@@ -134,7 +119,7 @@ SpherePack multisphere_from_voxels(
     }
     // =========================================================================
 
-    float final_precision = compute_voxel_precision(voxel_grid, recon_mask);
+    float final_precision = compute_voxel_precision(input_grid, recon_mask);
 
     if(config.show_progress) {
         std::cout << "Final Precision: " << final_precision << std::endl;
@@ -146,8 +131,8 @@ SpherePack multisphere_from_voxels(
 
     for (int i = 0; i < final_sphere_table.rows(); ++i) {
         Eigen::Vector3f pos_vox = final_sphere_table.block<1, 3>(i, 0).transpose();
-        centers_phys.row(i) = voxel_grid.origin + (pos_vox.array() + 0.5f).matrix() * voxel_grid.voxel_size;
-        radii_phys(i) = (final_sphere_table(i, 3)) * voxel_grid.voxel_size;
+        centers_phys.row(i) = input_grid.origin + (pos_vox.array() + 0.5f).matrix() * input_grid.voxel_size;
+        radii_phys(i) = (final_sphere_table(i, 3)) * input_grid.voxel_size;
     }
 
     #ifdef MULTISPHERE_DEBUG
@@ -167,7 +152,7 @@ SpherePack multisphere_from_voxels(
     }
     if (config.compute_physics == 2) {
         // Compute physical properties based on original mesh (if available)
-        compute_multisphere_physics(result, voxel_grid);
+        compute_multisphere_physics(result, input_grid);
     }
     
     return result;
@@ -198,48 +183,42 @@ SpherePack multisphere_from_mesh(
         throw std::runtime_error("Cannot reconstruct from an empty mesh.");
     }
 
+    MSS::MultisphereConfig config_vox = config; // Make a copy to modify
+
+
     // 1. Convert to VoxelGrid
-    VoxelGrid<uint8_t> voxel_grid = mesh_to_binary_grid(mesh, config.div, config.padding);
+    VoxelGrid<uint8_t> voxel_grid = mesh_to_binary_grid(mesh, config_vox);
+
+
     #ifdef MULTISPHERE_DEBUG    
         std::cout << "Voxel grid created from mesh: " << voxel_grid.nx() << "x" << voxel_grid.ny() << "x" << voxel_grid.nz() << std::endl;
     #endif
 
-    SpherePack sp;
-    if (config.initial_sphere_table.has_value()) {
-        // Convert Table to SpherePack (Physical units)
-        Eigen::MatrixX3f centers_vox(config.initial_sphere_table.value().rows(), 3);
-        Eigen::VectorXf radii_vox(config.initial_sphere_table.value().rows());
+    // shift and scale initial sphere table from physical units to voxel units if provided
+    if (config.initial_sphere_table.rows() > 0) {
+        // Copy the entire table to start
+        config_vox.initial_sphere_table = config.initial_sphere_table;
 
-        // convert initial sphere table from physical units to voxel units for reconstruction
-        for (int i = 0; i < config.initial_sphere_table.value().rows(); ++i) {
-            Eigen::Vector3f pos_phys = config.initial_sphere_table.value().block<1, 3>(i, 0).transpose();
-            centers_vox.row(i) = ((pos_phys - voxel_grid.origin).array() / voxel_grid.voxel_size) - 0.5f;
-            radii_vox(i) = (config.initial_sphere_table.value().operator()(i, 3)) / voxel_grid.voxel_size;
-        }
-        Eigen::MatrixX4f sphere_table_vox(config.initial_sphere_table.value().rows(), 4);
-        sphere_table_vox.block(0, 0, config.initial_sphere_table.value().rows(), 3) = centers_vox;
-        sphere_table_vox.col(3) = radii_vox;
+        // 1. Shift centers by origin (broadcasting the origin row-wise)
+        config_vox.initial_sphere_table.leftCols<3>().rowwise() -= voxel_grid.origin.transpose();
 
-        MSS::MultisphereConfig config_vox = config; // Make a copy to modify
-        config_vox.initial_sphere_table = sphere_table_vox; // Pass the voxel-space sphere table to the config for reconstruction
+        // 2. Scale centers by voxel size and offset by 0.5
+        config_vox.initial_sphere_table.leftCols<3>().array() = 
+            (config_vox.initial_sphere_table.leftCols<3>().array() / voxel_grid.voxel_size) - 0.5f;
+
+        // 3. Scale radii by voxel size
+        config_vox.initial_sphere_table.col(3).array() /= voxel_grid.voxel_size;
 
         #ifdef MULTISPHERE_DEBUG
         std::cout << "Converted initial sphere table to voxel units for reconstruction." << std::endl;
         #endif
+    }
 
-        sp = multisphere_from_voxels(
+    SpherePack sp;
+    sp = multisphere_from_voxels(
             voxel_grid,
             config_vox
         );
-    } else {
-        #ifdef MULTISPHERE_DEBUG
-            std::cout << "No initial sphere table provided. Starting with an empty table." << std::endl;
-        #endif
-        sp = multisphere_from_voxels(
-            voxel_grid,
-            config
-        );
-    }
 
     // 4. Boundary Adjustment (Optional)
     if (config.confine_mesh) {

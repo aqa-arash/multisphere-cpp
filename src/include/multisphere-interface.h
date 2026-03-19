@@ -46,16 +46,15 @@ inline void save_mesh_to_stl(const FastMesh& mesh, const std::string& output_pat
 /**
  * @brief Voxelize a mesh using the robust winding number method.
  * @param mesh Input FastMesh.
- * @param div Voxel grid division (resolution).
- * @param padding Grid padding.
+ * @param config MultisphereConfig struct containing all configuration parameters.
+ * @note if minimum_radius_real is set in config, it will be used to determine the min_radius_vox size and updates the config.
  * @return VoxelGrid<bool> representing mesh occupancy.
  */
-inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, int div, int padding /* = 2 */);
+inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereConfig & config );
 
 /**
  * @brief Multisphere reconstruction from a voxel grid.
- * @tparam T VoxelGrid data type.
- * @param input_grid Input voxel grid.
+ * @param input_grid Input voxel grid. (unit8_t binary occupancy grid)
  * @param config MultisphereConfig struct containing all configuration parameters:
  * @param min_center_distance_vox Minimum center distance (voxels).
  * @param min_radius_vox Minimum radius (voxels).
@@ -66,9 +65,8 @@ inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, int div, int
  * @param compute_physics Whether to compute physical properties of the multisphere union. 0 = false, 1 = compute based on reconstruction
  * @return SpherePack reconstruction result.
  */
-template <typename T>
 SpherePack multisphere_from_voxels(
-	const VoxelGrid<T>& input_grid,
+	const VoxelGrid<uint8_t>& input_grid,
 	const MultisphereConfig& config //= MultisphereConfig()
 );
 
@@ -117,14 +115,6 @@ template <typename T>
 inline void export_voxel_grid_to_vtk(const VoxelGrid<T>& grid, const std::string& path);
 
 // . Mesh handling utilities .
-
-/** 
- * @brief Compute the minimum axis-aligned bounding box (AABB) dimension of a mesh.
- * @details Used for converting from voxel units to physical units and for setting default parameters based on mesh scale.
- * @param mesh Input FastMesh.
- * @return Minimum AABB dimension (float).
- */
-inline float get_min_AABB(const FastMesh & mesh);
 
 /**
  * @brief Filters the sphere table to keep only the largest connected network.

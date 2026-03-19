@@ -17,7 +17,7 @@
 #include <numeric>
 #include <algorithm>
 #include <stdexcept>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #ifdef HAVE_OPENMP
     #include <omp.h>
 #endif
@@ -145,14 +145,52 @@ inline float check_axis_shift(
  * @param epsilon Tolerance.
  * @return Sub-voxel shift vector.
  */
+/**
+ * @brief Determines sub-voxel shift for local maxima utilizing a zero-bounds-check fast path.
+ */
 inline Eigen::Vector3f shift_voxel_center(
     const VoxelGrid<float>& field,
     const Eigen::Vector3i& idx,
-    float epsilon = 1e-5)
+    float epsilon = 1e-5f)
 {
     int x = idx.x(), y = idx.y(), z = idx.z();
-    float val = field(x, y, z);
+    int nx = static_cast<int>(field.nx());
+    int ny = static_cast<int>(field.ny());
+    int nz = static_cast<int>(field.nz());
 
+    // FAST-PATH: Strictly interior voxels (avoids 36 conditional bounds checks)
+    if (x >= 2 && x < nx - 2 && y >= 2 && y < ny - 2 && z >= 2 && z < nz - 2) {
+        const float* data_ptr = field.data.data();
+        size_t stride_y = nz;
+        size_t stride_x = ny * nz;
+        size_t base_idx = x * stride_x + y * stride_y + z;
+
+        float val = data_ptr[base_idx];
+        float sx = 0.0f, sy = 0.0f, sz = 0.0f;
+
+        // X-axis check (Prefetched contiguous strides)
+        if (std::abs(data_ptr[base_idx + stride_x] - val) <= epsilon && 
+            data_ptr[base_idx + 2 * stride_x] < val - epsilon) sx = 1.0f;
+        else if (std::abs(data_ptr[base_idx - stride_x] - val) <= epsilon && 
+                 data_ptr[base_idx - 2 * stride_x] < val - epsilon) sx = -1.0f;
+
+        // Y-axis check
+        if (std::abs(data_ptr[base_idx + stride_y] - val) <= epsilon && 
+            data_ptr[base_idx + 2 * stride_y] < val - epsilon) sy = 1.0f;
+        else if (std::abs(data_ptr[base_idx - stride_y] - val) <= epsilon && 
+                 data_ptr[base_idx - 2 * stride_y] < val - epsilon) sy = -1.0f;
+
+        // Z-axis check (Perfect cache locality)
+        if (std::abs(data_ptr[base_idx + 1] - val) <= epsilon && 
+            data_ptr[base_idx + 2] < val - epsilon) sz = 1.0f;
+        else if (std::abs(data_ptr[base_idx - 1] - val) <= epsilon && 
+                 data_ptr[base_idx - 2] < val - epsilon) sz = -1.0f;
+
+        return Eigen::Vector3f(sx, sy, sz);
+    }
+
+    // SLOW-PATH: Boundary voxels fallback
+    float val = field(x, y, z);
     float sx = check_axis_shift(field, x, y, z, 1, 0, 0, val, epsilon);
     if (sx == 0.0f) sx = check_axis_shift(field, x, y, z, -1, 0, 0, val, epsilon);
 

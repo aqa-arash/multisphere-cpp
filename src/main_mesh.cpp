@@ -52,7 +52,7 @@ int main() {
         config.max_spheres = 10000; // Maximum number of spheres
         config.show_progress = true; // Show progress output
         config.confine_mesh = false; // Do not confine spheres to mesh boundary
-        config.initial_sphere_table = std::nullopt; // No initial sphere table
+        config.initial_sphere_table = Eigen::MatrixXf(0,4); // No initial sphere table
         config.compute_physics = 1; // Compute physical properties
         config.prune_isolated_spheres = true; // Do not prune isolated spheres
 

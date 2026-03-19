@@ -58,7 +58,7 @@ int main() {
     const float v_size = 1.0f; // voxel size
     // Initialize Boolean Grid
     // TODO: We can optimize memory usage by directly working with uint8_t for boolean values, but for clarity we use VoxelGrid<bool> here and convert later for cnpy.
-    VoxelGrid<bool> grid(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> grid(nx, ny, nz, v_size);
     std::vector<uint8_t> bool_buffer(nx * ny * nz, 0);
 
     VoxelGrid<float> edt_grid = grid.distance_transform();
@@ -130,8 +130,7 @@ int main() {
     config3.max_spheres = 100000;
     config3.show_progress = false;
     config3.initial_sphere_table = sphere_table; // Pass the initial sphere table to the config
-    SpherePack pack = multisphere_from_voxels(grid, config3
-                                    );
+    SpherePack pack = multisphere_from_voxels(grid, config3);
 
 
 

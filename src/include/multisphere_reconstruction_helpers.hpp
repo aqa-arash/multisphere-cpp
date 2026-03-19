@@ -15,8 +15,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include <Eigen/Dense>
-#include <optional>
+#include <Eigen/Core>
 #include <stdexcept>
 #include <string>
 #ifdef HAVE_OPENMP
@@ -76,8 +75,7 @@ inline Eigen::MatrixX4f peak_local_max_3d(
             for (int y = 0; y < ny; ++y) {
                 for (int z = 0; z < nz; ++z) {
                     float val = field(x, y, z);
-                    // mathematically exact half-diagonal of a unit cube: sqrt(3) / 2
-                    float radius = original_distance(x, y, z) + config.radius_offset_vox;
+                    float radius = original_distance(x, y, z) ;
 
                     if (radius < config.min_radius_vox) continue;
                     if (val <= 1.0f) continue;
@@ -96,7 +94,7 @@ inline Eigen::MatrixX4f peak_local_max_3d(
                         }
                     }
                     if (is_max) {
-                        local_peaks.push_back(Eigen::Vector4f((float)x, (float)y, (float)z, radius));
+                        local_peaks.push_back(Eigen::Vector4f((float)x, (float)y, (float)z, radius + config.radius_offset_vox));
                     }
                 }
             }
@@ -150,20 +148,7 @@ inline Eigen::MatrixX4f filter_and_shift_peaks(
         float pz = peaks(i, 2);
 
         bool collision = false;
-        // Check against history not needed due to overlap mask, but can be kept for extra safety if desired
-        /*
-        for (int j = 0; j < sphere_table.rows(); ++j) {
-            float hx = (float)sphere_table(j, 0);
-            float hy = (float)sphere_table(j, 1);
-            float hz = (float)sphere_table(j, 2);
-            float dx = px - hx;
-            float dy = py - hy;
-            float dz = pz - hz;
-            if ((dx*dx + dy*dy + dz*dz) < min_dist_sq) {
-                collision = true;
-                break;
-            }
-        }*/
+
         // Check self-collision
         if (!collision) {
             for (const auto& sphere : accepted_spheres) {
@@ -388,18 +373,18 @@ inline Eigen::MatrixX4f filter_largest_sphere_network(const Eigen::MatrixX4f& sp
 inline void append_sphere_table(
     Eigen::MatrixX4f& table,
     const Eigen::MatrixX4f& peaks,
-    std::optional<int> max_spheres = std::nullopt)
+    int max_spheres = 0)
 {
     if (peaks.rows() == 0) return;
-    if (!max_spheres.has_value() ||
-        (table.rows() + peaks.rows() < static_cast<size_t>(*max_spheres))) {
+    if (max_spheres == 0 ||
+        (table.rows() + peaks.rows() < static_cast<size_t>(max_spheres))) {
         table.conservativeResize(table.rows() + peaks.rows(), 4);
         for (int i = 0; i < peaks.rows(); ++i) {
             table.row(table.rows() - peaks.rows() + i) = peaks.row(i);
         }
         return;
     } else {
-        int space_left = *max_spheres - table.rows();
+        int space_left = max_spheres - table.rows();
         if (space_left <= 0) return;
         table.conservativeResize(table.rows() + space_left, 4);
         for (int i = 0; i < space_left; ++i) {
@@ -443,7 +428,7 @@ inline Eigen::MatrixX4f compute_sphere_table(
     VoxelGrid<uint8_t>& recon_mask,
     MultisphereConfig config
 ) {
-    Eigen::MatrixX4f sphere_table = config.initial_sphere_table.value_or(Eigen::MatrixX4f(0, 4));
+    Eigen::MatrixX4f sphere_table = config.initial_sphere_table;
 
     // Solver State
     int max_iter = config.persistence, iter = 1, prev_count = 0;
@@ -467,7 +452,7 @@ inline Eigen::MatrixX4f compute_sphere_table(
     VoxelGrid<float> summed_field(voxel_grid.nx(), voxel_grid.ny(), voxel_grid.nz(), voxel_grid.voxel_size, voxel_grid.origin);
 
     while (iter <= max_iter) {
-        if (config.max_spheres.has_value() && sphere_table.rows() >= *config.max_spheres) {
+        if (config.max_spheres > 0  && sphere_table.rows() >= config.max_spheres) {
             if (config.show_progress) std::cout << "Reached maximum number of spheres. Terminating." << std::endl;
             break;
         }
@@ -481,7 +466,7 @@ inline Eigen::MatrixX4f compute_sphere_table(
                     std::cout << " -Weight = " << weight_factor << " -Total spheres = " << sphere_table.rows() << " -Precision = " << precision << std::endl;
                     }
 
-                if (config.precision_target.has_value() && compute_voxel_precision(voxel_grid, recon_mask) >= *config.precision_target) {
+                if (config.precision_target < precision) {
                     if (config.show_progress) std::cout << "Reached target precision. Terminating." << std::endl;
                     break;
                 }

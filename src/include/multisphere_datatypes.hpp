@@ -22,7 +22,7 @@
     #include <omp.h>
 #endif
 #include <memory>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include "thirdparty/edt.hpp" ///< High-performance C++ EDT library
 
 
@@ -115,23 +115,66 @@ public:
         std::unique_ptr<float[]> dists = nullptr;
 
         if (binary_mode) {
-            // Binary mode: Flatten all labels > 0 into a uniform mask of 1s
-            std::vector<uint8_t> temp_mask(this->data.size());
-            #pragma omp parallel for
-            for(size_t i = 0; i < this->data.size(); ++i) {
-                temp_mask[i] = (this->data[i] > static_cast<T>(0)) ? 1 : 0;
+            if constexpr (std::is_same_v<T, uint8_t>) {
+                // 1. Cross-platform OpenMP check for multi-label data
+                int needs_flattening = 0;
+                
+                #pragma omp parallel for reduction(|:needs_flattening)
+                for (long long i = 0; i < static_cast<long long>(this->data.size()); ++i) {
+                    if (this->data[i] > 1) {
+                        needs_flattening |= 1;
+                    }
+                }
+
+                // 2. Branch: Flatten multi-label data OR use zero-copy fast path
+                if (needs_flattening != 0) {
+                    #ifdef MULTISPHERE_DEBUG
+                    std::cerr << "[Warning] VoxelGrid uint8_t data contains multi-label values (> 1). Flattening to strict binary mask." << std::endl;
+                    #endif
+                    
+                    std::vector<uint8_t> temp_mask(this->data.size());
+                    #pragma omp parallel for
+                    for(long long i = 0; i < static_cast<long long>(this->data.size()); ++i) {
+                        temp_mask[i] = (this->data[i] > 0) ? 1 : 0;
+                    }
+                    
+                    dists.reset(edt::binary_edt<uint8_t>(
+                        temp_mask.data(), 
+                        static_cast<int>(shape[2]), 
+                        static_cast<int>(shape[1]), 
+                        static_cast<int>(shape[0]), 
+                        1.0f, 1.0f, 1.0f, 
+                        true, num_threads, nullptr
+                    ));
+                } else {
+                    // Zero-copy fast path
+                    dists.reset(edt::binary_edt<uint8_t>(
+                        const_cast<uint8_t*>(this->data.data()), 
+                        static_cast<int>(shape[2]), 
+                        static_cast<int>(shape[1]), 
+                        static_cast<int>(shape[0]), 
+                        1.0f, 1.0f, 1.0f, 
+                        true, num_threads, nullptr
+                    ));
+                }
+            } else {
+                // Safe allocation block for generic non-uint8_t types
+                std::vector<uint8_t> temp_mask(this->data.size());
+                #pragma omp parallel for
+                for(long long i = 0; i < static_cast<long long>(this->data.size()); ++i) {
+                    temp_mask[i] = (this->data[i] > static_cast<T>(0)) ? 1 : 0;
+                }
+                
+                dists.reset(edt::binary_edt<uint8_t>(
+                    temp_mask.data(), 
+                    static_cast<int>(shape[2]), 
+                    static_cast<int>(shape[1]), 
+                    static_cast<int>(shape[0]), 
+                    1.0f, 1.0f, 1.0f, 
+                    true, num_threads, nullptr
+                ));
             }
-            
-            dists.reset(edt::binary_edt<uint8_t>(
-                temp_mask.data(), 
-                static_cast<int>(shape[2]), 
-                static_cast<int>(shape[1]), 
-                static_cast<int>(shape[0]), 
-                1.0f, 1.0f, 1.0f, 
-                true, num_threads, nullptr
-            ));
         } else {
-            // skip for now, as we currently only use binary mode. Future: implement multi-label EDT if needed.
             throw std::runtime_error("Non-binary EDT mode not implemented yet.");
         }
         

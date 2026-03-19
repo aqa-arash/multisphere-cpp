@@ -47,7 +47,7 @@ int main() {
     int nx = 64, ny = 64, nz = 64;
 
     // Single Sphere
-    VoxelGrid<bool> single_sphere(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> single_sphere(nx, ny, nz, v_size);
     int cx = 32, cy = 32, cz = 32, r = 15;
     for (int x = 0; x < nx; ++x)
         for (int y = 0; y < ny; ++y)
@@ -56,7 +56,7 @@ int main() {
                     single_sphere.data[x * ny * nz + y * nz + z] = true;
 
     // Double Sphere
-    VoxelGrid<bool> double_sphere(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> double_sphere(nx, ny, nz, v_size);
     struct Ball { double x, y, z, r; };
     std::vector<Ball> test_geometry = {
         {30.0, 32.0, 32.0, 14.0},
@@ -77,7 +77,7 @@ int main() {
             }
 
     // Rectangle
-    VoxelGrid<bool> rectangle(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> rectangle(nx, ny, nz, v_size);
     int min_x = 12, max_x = 55, min_y = 22, max_y = 42, min_z = 22, max_z = 42;
     for (int x = 0; x < nx; ++x)
         for (int y = 0; y < ny; ++y)
@@ -86,7 +86,7 @@ int main() {
                     rectangle.data[x * ny * nz + y * nz + z] = true;
 
     // L-Shape
-    VoxelGrid<bool> l_shape(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> l_shape(nx, ny, nz, v_size);
     for (int x = 0; x < nx; ++x)
         for (int y = 0; y < ny; ++y)
             for (int z = 0; z < nz; ++z) {
@@ -97,7 +97,7 @@ int main() {
             }
 
     // Torus
-    VoxelGrid<bool> torus(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> torus(nx, ny, nz, v_size);
     double major_R = 20.0, minor_r = 6.0;
     for (int x = 0; x < nx; ++x)
         for (int y = 0; y < ny; ++y)
@@ -110,7 +110,7 @@ int main() {
             }
 
     // Phantom Peak Cluster
-    VoxelGrid<bool> cluster(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> cluster(nx, ny, nz, v_size);
     struct BallData { double x, y, z, r; };
     std::vector<BallData> cluster_spheres = {
         {25.0, 25.0, 32.0, 18.0}, {25.0, 39.0, 32.0, 18.0},
@@ -130,7 +130,7 @@ int main() {
             }
 
     // Sputnik
-    VoxelGrid<bool> sputnik(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> sputnik(nx, ny, nz, v_size);
     struct SputnikBall { double x, y, z, r; };
     std::vector<SputnikBall> sputnik_geo = {
         {32.0, 32.0, 32.0, 20.0},
@@ -152,7 +152,7 @@ int main() {
             }
 
     // Tumor
-    VoxelGrid<bool> tumor(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> tumor(nx, ny, nz, v_size);
     struct TumorBall { double x, y, z, r; };
     std::vector<TumorBall> tumor_geo = {
         {32.0, 32.0, 32.0, 20.0}, {44.0, 32.0, 32.0, 15.0}
@@ -171,7 +171,7 @@ int main() {
             }
 
     // Swiss Cheese
-    VoxelGrid<bool> cheese(nx, ny, nz, v_size);
+    VoxelGrid<uint8_t> cheese(nx, ny, nz, v_size);
     int box_min = 12, box_max = 52;
     struct Hole { double x, y, z, r; };
     std::vector<Hole> holes = {
