@@ -15,9 +15,11 @@ add_executable(multisphere_app main.cpp)
 add_executable(multisphere_mesh main_mesh.cpp)
 add_executable(multisphere_collision main_collision.cpp)
 add_executable(multisphere_boost main_boost.cpp)
+add_executable(multisphere_cube main_cube.cpp)
+add_executable(multisphere_rectangle main_rectangle.cpp)
 
 # Link GEMSS header-only library
-foreach(target multisphere_app multisphere_mesh multisphere_collision multisphere_boost)
+foreach(target multisphere_app multisphere_mesh multisphere_collision multisphere_boost multisphere_cube multisphere_rectangle)
     target_link_libraries(${target} PRIVATE multisphere_lib)
     target_compile_options(${target} PRIVATE -O3 -march=native)
 endforeach()
