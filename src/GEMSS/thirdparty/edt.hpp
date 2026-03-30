@@ -165,7 +165,7 @@ void squared_edt_1d_multi_seg(
  * 
  * Returns: writes distance transform of f to d
  */
-void squared_edt_1d_parabolic(
+inline void squared_edt_1d_parabolic(
     float* f,
     const int64_t n, 
     const int64_t stride, 
@@ -244,7 +244,7 @@ void squared_edt_1d_parabolic(
 }
 
 // about 5% faster
-void squared_edt_1d_parabolic(
+inline void squared_edt_1d_parabolic(
     float* f,
     const int64_t n, 
     const int64_t stride, 
@@ -312,7 +312,7 @@ void squared_edt_1d_parabolic(
   }
 }
 
-void _squared_edt_1d_parabolic(
+inline void _squared_edt_1d_parabolic(
     float* f, 
     const int64_t n, 
     const int64_t stride, 
@@ -342,7 +342,7 @@ void _squared_edt_1d_parabolic(
  * Returns: writes squared distance transform in f
  */
 template <typename T>
-void squared_edt_1d_parabolic_multi_seg(
+inline void squared_edt_1d_parabolic_multi_seg(
   T* segids, float* f,
   const int64_t n, const int64_t stride, const float anisotropy,
   const bool black_border=false
