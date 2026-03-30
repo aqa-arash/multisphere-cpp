@@ -57,7 +57,7 @@ namespace GEMSS {
  * Note: This is used to determine voxel size for grid construction. Where h = min_extent / div.
  */
 
-float get_min_AABB(const FastMesh & mesh)  {
+inline float get_min_AABB(const FastMesh & mesh)  {
     // 1. Setup Grid & Bounds
     Eigen::Vector3f min_v = mesh.vertices.colwise().minCoeff().transpose();
     Eigen::Vector3f max_v = mesh.vertices.colwise().maxCoeff().transpose();

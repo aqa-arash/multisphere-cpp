@@ -23,3 +23,28 @@ foreach(target multisphere_app multisphere_mesh multisphere_collision multispher
     target_link_libraries(${target} PRIVATE GEMSS)
     target_compile_options(${target} PRIVATE -O3 -march=native)
 endforeach()
+
+
+
+# If you are compiling it for multiple interconnected projects using fetch, consider adding the following lines : 
+
+#include(FetchContent)
+
+#FetchContent_Declare(
+#    GEMSS
+#    GIT_REPOSITORY https://github.com/aqa-arash/GEMSS.git
+#    GIT_TAG        main
+#    # The CMakeLists.txt file is located in the folder src
+#    SOURCE_SUBDIR  src/GEMSS
+
+    # Inject 'inline' using the correct relative paths from the repo root
+#    PATCH_COMMAND  sed -i "s/void ThreadPool::start(/inline void ThreadPool::start(/g" src/GEMSS/thirdparty/edt.hpp &&
+#                   sed -i "s/void squared_edt_1d_parabolic(/inline void squared_edt_1d_parabolic(/g" src/GEMSS/thirdparty/edt.hpp &&
+#                   sed -i "s/void _squared_edt_1d_parabolic(/inline void _squared_edt_1d_parabolic(/g" src/GEMSS/thirdparty/edt.hpp &&
+
+#)
+
+#FetchContent_MakeAvailable(GEMSS)
+#
+#
+#
