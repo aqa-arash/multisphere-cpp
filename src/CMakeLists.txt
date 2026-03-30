@@ -20,6 +20,6 @@ add_executable(multisphere_rectangle main_rectangle.cpp)
 
 # Link GEMSS header-only library
 foreach(target multisphere_app multisphere_mesh multisphere_collision multisphere_boost multisphere_cube multisphere_rectangle)
-    target_link_libraries(${target} PRIVATE multisphere_lib)
+    target_link_libraries(${target} PRIVATE GEMSS)
     target_compile_options(${target} PRIVATE -O3 -march=native)
 endforeach()

@@ -27,29 +27,29 @@ if(GEMSS_USE_OPENMP)
 endif()
 
 # --- Library Target ---
-add_library(multisphere_lib INTERFACE)
-target_include_directories(multisphere_lib INTERFACE 
+add_library(GEMSS INTERFACE)
+target_include_directories(GEMSS INTERFACE 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/thirdparty>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/igl>
     $<INSTALL_INTERFACE:.>
 )
-target_link_libraries(multisphere_lib INTERFACE Eigen3::Eigen)
+target_link_libraries(GEMSS INTERFACE Eigen3::Eigen)
 
 if(GEMSS_USE_OPENMP AND OpenMP_CXX_FOUND)
-    target_link_libraries(multisphere_lib INTERFACE OpenMP::OpenMP_CXX)
-    target_compile_definitions(multisphere_lib INTERFACE HAVE_OPENMP)
+    target_link_libraries(GEMSS INTERFACE OpenMP::OpenMP_CXX)
+    target_compile_definitions(GEMSS INTERFACE HAVE_OPENMP)
 endif()
 
 if(GEMSS_DEBUG)
-    target_compile_definitions(multisphere_lib INTERFACE GEMSS_DEBUG)
+    target_compile_definitions(GEMSS INTERFACE GEMSS_DEBUG)
 endif()
 
 # Only header-only library, no executables or targets here
 
 # --- Installation Rules ---
 include(GNUInstallDirs)
-install(TARGETS multisphere_lib
+install(TARGETS GEMSS
     EXPORT GEMSSTargets
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
