@@ -67,7 +67,7 @@ inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereC
  * @param compute_physics Whether to compute physical properties of the multisphere union. 0 = false, 1 = compute based on reconstruction
  * @return SpherePack reconstruction result.
  */
-SpherePack multisphere_from_voxels(
+inline SpherePack multisphere_from_voxels(
 	const VoxelGrid<uint8_t>& input_grid,
 	const MultisphereConfig& config //= MultisphereConfig()
 );
@@ -88,7 +88,7 @@ SpherePack multisphere_from_voxels(
  * @param compute_physics Whether to compute physical properties of the multisphere union. 0 = false, 1 = compute based on reconstruction, 2 = compute based on original mesh (if available)
  * @return SpherePack reconstruction result.
  */
-SpherePack multisphere_from_mesh(
+inline SpherePack multisphere_from_mesh(
 	const FastMesh& mesh,
 	const MultisphereConfig& config //= MultisphereConfig()
 );

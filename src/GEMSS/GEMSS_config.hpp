@@ -29,7 +29,7 @@ struct MultisphereConfig {
     // --- Utilities & Prior State ---
     int compute_physics = 2; ///< Compute volume, CoM, and inertia tensor 0 = false, 1 = Compute based on reconstruction, 2 = compute based on original mesh (if available)
     bool prune_isolated_spheres = false; ///< Remove spheres that are not touching the biggest network of spheres
-    bool show_progress = false;    ///< Print console progress
+    bool show_progress = true;    ///< Print console progress
     Eigen::MatrixX4f initial_sphere_table = Eigen::MatrixX4f(0, 4); ///< Prior solver state, can be in voxel units (if passed to multisphere_from_voxels) or physical units (if passed to multisphere_from_mesh). This is a matrix of shape (N, 4) where each row is (center_x, center_y, center_z, radius). If provided, the solver will start with this initial configuration instead of an empty table. Adjust based on whether you have a good initial guess for the sphere configuration that can speed up convergence.
 
 
