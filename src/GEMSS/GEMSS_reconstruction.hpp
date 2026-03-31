@@ -4,7 +4,7 @@
 
 /**
  * @file multisphere_reconstruction.hpp
- * @brief Main reconstruction algorithms for multisphere-cpp.
+ * @brief Main reconstruction algorithms for GEMSS.
  *
  * Provides multisphere reconstruction from voxel grids and triangle meshes.
  * Includes iterative peak detection, filtering, and conversion to physical units.
