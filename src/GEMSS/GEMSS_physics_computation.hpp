@@ -3,7 +3,7 @@
 
 /**
  * @file multisphere_physics_computation.hpp
- * @brief Physical property calculations for multisphere-cpp.
+ * @brief Physical property calculations for GEMSS.
  *
  * Computes volume, center of mass, and inertia tensor from a voxel grid mask
  * using a highly-optimized, single-pass Parallel Axis Theorem reduction.
