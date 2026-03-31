@@ -4,7 +4,7 @@
 
 /**
  * @file multisphere_mesh_handler.hpp
- * @brief Mesh voxelization and sphere pack constraint utilities for multisphere-cpp.
+ * @brief Mesh voxelization and sphere pack constraint utilities for GEMSS.
  *
  * Provides robust mesh-to-voxel conversion and sphere radius constraint based on signed distance.
  *
