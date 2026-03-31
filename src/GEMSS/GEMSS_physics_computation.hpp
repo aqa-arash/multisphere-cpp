@@ -108,17 +108,47 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
                            Ixy, Iyy + self_inertia_total, Iyz,
                            Ixz, Iyz, Izz + self_inertia_total;
 
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigensolver(pack.inertia_tensor);
+    // 4. Principal Moments and Axes with Analytical Solver (Highly optimized for 3x3 symmetric tensors)                       
+    // 4.1. Pre-condition the Inertia Tensor (Eliminates noise causing arbitrary degenerate rotations)
+    // Use a threshold relative to the largest principal moment
+    float max_I = pack.inertia_tensor.diagonal().maxCoeff();
+    const float noise_threshold = max_I * 1e-5f; 
+
+    pack.inertia_tensor = pack.inertia_tensor.unaryExpr([noise_threshold](float v) {
+        return std::abs(v) < noise_threshold ? 0.0f : v;
+    });
+
+    // 4.2. Fast Analytical 3x3 Solver (Avoids iterative overhead)
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigensolver;
+    eigensolver.computeDirect(pack.inertia_tensor);
+
     if (eigensolver.info() == Eigen::Success) {
+        Eigen::Matrix3f evecs = eigensolver.eigenvectors();
+
+        // 4.3. deterministic sign and handedness enforcement
+        for (int i = 0; i < 3; ++i) {
+            int max_idx;
+            evecs.col(i).cwiseAbs().maxCoeff(&max_idx);
+            // Flip if the dominant component is negative
+            if (evecs(max_idx, i) < 0.0f) {
+                evecs.col(i) *= -1.0f;
+            }
+        }
+
+        // Force right-handed coordinate system
+        if (evecs.col(0).cross(evecs.col(1)).dot(evecs.col(2)) < 0.0f) {
+            evecs.col(2) *= -1.0f;
+        }
+
         pack.principal_moments = eigensolver.eigenvalues();
-        pack.principal_axes = eigensolver.eigenvectors();
+        pack.principal_axes = evecs;
     } else {
-        std::cerr << "[Warning] Eigendecomposition failed." << std::endl;
+        std::cerr << "[Warning] Analytical eigendecomposition failed." << std::endl;
         pack.principal_moments.setZero();
         pack.principal_axes.setIdentity();
     }
 
-    // 4. Calculate Bounding Radius
+    // 5. Calculate Bounding Radius
     double max_r = 0.0;
     for (size_t i = 0; i < pack.num_spheres(); ++i) {
         Eigen::Vector3f center = pack.centers.row(i);
