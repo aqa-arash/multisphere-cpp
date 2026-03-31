@@ -4,7 +4,7 @@
 
 /**
  * @file multisphere_reconstruction_helpers.hpp
- * @brief Helper functions for multisphere-cpp reconstruction algorithms.
+ * @brief Helper functions for GEMSS reconstruction algorithms.
  *
  * Provides peak detection, filtering, sphere table management, and residual field computation.
  *
