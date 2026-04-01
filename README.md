@@ -261,4 +261,4 @@ Felix Buchele, Patric Müller, Thorsten Pöschel,
 
 ## Contact & Support
 
-For questions, bug reports, or contributions, please [open an issue](https://github.com/aqa-arash/multisphere-cpp/issues)
+For questions, bug reports, or contributions, please [open an issue](https://github.com/aqa-arash/GEMSS/issues)
