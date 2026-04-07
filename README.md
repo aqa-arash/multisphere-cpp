@@ -213,14 +213,7 @@ No runtime visualization is included in this library.
 
 
 ### Details of the config 
-
-    persistence (int): > Defines the solver's "patience" when it stops finding new features.
-
-        Value = 1: The solver stops immediately if a standard search finds no new peaks.
-
-        Value > 1: If no peaks are found, the solver will amplify the missing details and retry up to N times.
-
-        Recommendation: Use higher values for complex geometries where small details are hard to detect at base resolution.
+[📖 Documentation](./README_CONFIG.md)
 
 ---
 
