@@ -1,7 +1,3 @@
-#ifndef GEMSS_IO_HPP
-#define GEMSS_IO_HPP
-
-
 /**
  * @file multisphere_io.hpp
  * @brief Input/output utilities for multisphere-cpp library.
@@ -11,6 +7,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_IO_HPP
+#define GEMSS_IO_HPP
 
 #include <iostream>
 #include <vector>
@@ -88,7 +87,7 @@ inline FastMesh load_mesh_fast(const std::string& path) {
         triangles_read += batch_size;
     }
 
-    // 2. Sort in contiguous memory (Blisteringly fast, highly cache localized)
+    // 2. Sort in contiguous memory for vertex welding (Exploits spatial locality and SIMD during sorting)
     std::sort(raw_verts.begin(), raw_verts.end());
 
     // 3. Sweep and Remap
@@ -160,7 +159,7 @@ inline void export_to_vtk(const SpherePack& sp, const std::string& path) {
     std::ofstream f(path);
     size_t n = sp.num_spheres();
 
-    // Legacy VTK format is the most efficient for point clouds
+    // VTK format
     f << "# vtk DataFile Version 3.0\n"
       << "SpherePack Centers\nASCII\nDATASET POLYDATA\n"
       << "POINTS " << n << " float\n";

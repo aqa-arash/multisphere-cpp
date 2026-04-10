@@ -1,7 +1,3 @@
-#ifndef GEMSS_MESH_HANDLER_HPP
-#define GEMSS_MESH_HANDLER_HPP
-
-
 /**
  * @file multisphere_mesh_handler.hpp
  * @brief Mesh voxelization and sphere pack constraint utilities for GEMSS.
@@ -11,6 +7,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_MESH_HANDLER_HPP
+#define GEMSS_MESH_HANDLER_HPP
 
 #include <vector>
 #include <cmath>
@@ -49,25 +48,6 @@
 
 // Namespace MSS for all library code
 namespace GEMSS {
-
-/** 
- * @brief Get the minimum axis-aligned bounding box dimension.
- * @param mesh Input mesh.
- * @return Minimum extent of the AABB.
- * Note: This is used to determine voxel size for grid construction. Where h = min_extent / div.
- */
-
-inline float get_min_AABB(const FastMesh & mesh)  {
-    // 1. Setup Grid & Bounds
-    Eigen::Vector3f min_v = mesh.vertices.colwise().minCoeff().transpose();
-    Eigen::Vector3f max_v = mesh.vertices.colwise().maxCoeff().transpose();
-    Eigen::Vector3f extents = max_v - min_v;
-
-    float min_extent = extents.minCoeff();
-    if (min_extent <= 1e-6) min_extent = (extents.maxCoeff() > 0 ? extents.maxCoeff() : 1.0f);
-
-    return min_extent;
-}
 
 /**
  * @brief Robust voxelizer using generalized winding number.

@@ -1,6 +1,3 @@
-#ifndef GEMSS_PHYSICS_COMPUTATION_HPP
-#define GEMSS_PHYSICS_COMPUTATION_HPP
-
 /**
  * @file multisphere_physics_computation.hpp
  * @brief Physical property calculations for GEMSS.
@@ -11,6 +8,9 @@
  * @author Arash Moradian
  * @date 2026-03-12
  */
+
+#ifndef GEMSS_PHYSICS_COMPUTATION_HPP
+#define GEMSS_PHYSICS_COMPUTATION_HPP
 
 #include <cmath>
 #include <iostream>
@@ -93,7 +93,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
                            cy_local + voxelGrid.origin.y(),
                            cz_local + voxelGrid.origin.z();
 
-    // 3. Parallel Axis Theorem (Calculated entirely in stable local space)
+    // 3. Parallel Axis Theorem (Calculated entirely in local space)
     double Ixx = (sum_yy * voxel_vol) + (sum_zz * voxel_vol) - pack.volume * (cy_local * cy_local + cz_local * cz_local);
     double Iyy = (sum_xx * voxel_vol) + (sum_zz * voxel_vol) - pack.volume * (cx_local * cx_local + cz_local * cz_local);
     double Izz = (sum_xx * voxel_vol) + (sum_yy * voxel_vol) - pack.volume * (cx_local * cx_local + cy_local * cy_local);
@@ -108,7 +108,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
                            Ixy, Iyy + self_inertia_total, Iyz,
                            Ixz, Iyz, Izz + self_inertia_total;
 
-    // 4. Principal Moments and Axes with Analytical Solver (Highly optimized for 3x3 symmetric tensors)                       
+    // 4. Principal Moments and Axes with Analytical Solver                       
     // 4.1. Pre-condition the Inertia Tensor (Eliminates noise causing arbitrary degenerate rotations)
     // Use a threshold relative to the largest principal moment
     float max_I = pack.inertia_tensor.diagonal().maxCoeff();
@@ -118,7 +118,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
         return std::abs(v) < noise_threshold ? 0.0f : v;
     });
 
-    // 4.2. Fast Analytical 3x3 Solver (Avoids iterative overhead)
+    // 4.2. Analytical 3x3 Solver (Avoids iterative overhead)
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigensolver;
     eigensolver.computeDirect(pack.inertia_tensor);
 

@@ -1,7 +1,3 @@
-#ifndef GEMSS_DATATYPES_HPP
-#define GEMSS_DATATYPES_HPP
-
-
 /**
  * @file multisphere_datatypes.hpp
  * @brief Core data structures for multisphere-cpp library (namespace GEMSS).
@@ -12,6 +8,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_DATATYPES_HPP
+#define GEMSS_DATATYPES_HPP
 
 #include <iostream>
 #include <vector>
@@ -57,7 +56,7 @@ struct SpherePack {
     Eigen::Vector3f principal_moments = Eigen::Vector3f::Zero();
 
     SpherePack(Eigen::MatrixX3f c = Eigen::MatrixX3f(0, 3), Eigen::VectorXf r = Eigen::VectorXf(0)) 
-        : centers(std::move(c)), radii(std::move(r)) {
+        : centers (c), radii(r) {
         if (centers.rows() != radii.size()) {
             throw std::invalid_argument("Centers and radii length mismatch.");
         }
@@ -120,7 +119,7 @@ public:
                 int needs_flattening = 0;
                 
                 #pragma omp parallel for reduction(|:needs_flattening)
-                for (long long i = 0; i < static_cast<long long>(this->data.size()); ++i) {
+                for (size_t i = 0; i < this->data.size(); ++i) {
                     if (this->data[i] > 1) {
                         needs_flattening |= 1;
                     }
@@ -133,8 +132,7 @@ public:
                     #endif
                     
                     std::vector<uint8_t> temp_mask(this->data.size());
-                    #pragma omp parallel for
-                    for(long long i = 0; i < static_cast<long long>(this->data.size()); ++i) {
+                    for(size_t i = 0; i < this->data.size(); ++i) {
                         temp_mask[i] = (this->data[i] > 0) ? 1 : 0;
                     }
                     
@@ -160,8 +158,7 @@ public:
             } else {
                 // Safe allocation block for generic non-uint8_t types
                 std::vector<uint8_t> temp_mask(this->data.size());
-                #pragma omp parallel for
-                for(long long i = 0; i < static_cast<long long>(this->data.size()); ++i) {
+                for(size_t i = 0; i < this->data.size(); ++i) {
                     temp_mask[i] = (this->data[i] > static_cast<T>(0)) ? 1 : 0;
                 }
                 
@@ -178,7 +175,7 @@ public:
             throw std::runtime_error("Non-binary EDT mode not implemented yet.");
         }
         
-        #pragma omp parallel for
+        
         for(size_t i = 0; i < this->data.size(); ++i) {
             result.data[i] = dists[i];
         }

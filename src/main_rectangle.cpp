@@ -4,7 +4,7 @@
  *
  * Generates a synthetic voxel rectangular box with three distinct side lengths in a larger domain, runs multisphere reconstruction, and exports results.
  *
- * @author (auto-generated)
+ * @author Arash Moradian
  * @date 2026-03-24
  */
 

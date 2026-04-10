@@ -15,6 +15,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QGroupBox>
+#include <QProgressBar>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
 #include <QDoubleValidator>
 #include <QSpinBox>
@@ -38,7 +41,41 @@
 #include <vtkAxesActor.h>
 #include <vtkCubeSource.h>
 
+#include <iostream>
+#include <streambuf>
+
 #include "GEMSS/GEMSS-interface.h"
+
+class StdRedirector : public QObject, public std::streambuf {
+    Q_OBJECT
+public:
+    StdRedirector(std::ostream& stream) : stream(stream) {
+        old_buf = stream.rdbuf(this);
+    }
+    ~StdRedirector() {
+        stream.rdbuf(old_buf);
+    }
+
+signals:
+    void textReceived(QString text);
+
+protected:
+    virtual int_type overflow(int_type v) override {
+        if (v == '\n') {
+            emit textReceived(QString::fromStdString(currentLine));
+            currentLine.clear();
+        } else {
+            currentLine += static_cast<char>(v);
+        }
+        return v;
+    }
+
+private:
+    std::ostream& stream;
+    std::streambuf* old_buf;
+    std::string currentLine;
+};
+
 
 class GEMSSWindow : public QMainWindow {
     Q_OBJECT
@@ -100,14 +137,22 @@ public:
         configBox->setLayout(configForm);
         controlsLayout->addWidget(configBox);
         // Run button
-        QPushButton *runBtn = new QPushButton("Run Multisphere");
-        connect(runBtn, &QPushButton::clicked, this, &GEMSSWindow::onRunMultisphere);
+        runBtn = new QPushButton("Run Multisphere");
+        connect(runBtn, &QPushButton::clicked, this, &GEMSSWindow::onRunMultisphere);        
         controlsLayout->addWidget(runBtn);
+        // Initialize the Progress Bar
+        progressBar = new QProgressBar();
+        progressBar->setRange(0, 100);
+        progressBar->setValue(0);
+        progressBar->setTextVisible(false); // Keeps it clean
+        controlsLayout->addWidget(progressBar);
         // Info output
         infoBox = new QTextEdit(); infoBox->setReadOnly(true);
         controlsLayout->addWidget(new QLabel("Sphere Pack Info"));
         controlsLayout->addWidget(infoBox);
         controlsLayout->addStretch();
+        // Create the redirector for std::cout
+        redirector = new StdRedirector(std::cout);
         // VTK
         vtkWidget = new QVTKOpenGLNativeWidget(this);
         renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -139,9 +184,20 @@ public:
         mainLayout->addLayout(controlsLayout, 1);
         mainLayout->addWidget(vtkWidget, 3);
         setCentralWidget(central);
+        // setup watcher
+        watcher = new QFutureWatcher<GEMSS::SpherePack>(this);
+        connect(watcher, &QFutureWatcherBase::finished, this, &GEMSSWindow::onProcessingFinished);
+        // Connect the redirector to the text update slot
+        connect(redirector, &StdRedirector::textReceived, 
+            this, &GEMSSWindow::onTextReceived, Qt::QueuedConnection);
     }
 
 private slots:
+    void onTextReceived(QString text) {
+        infoBox->append(text); // Appends the console line to the text box
+        // Optional: auto-scroll to bottom
+        //infoBox->ensureCursorVisible();
+    }
     void onLoadSTL() {
         QString fname = QFileDialog::getOpenFileName(this, "Open STL File", "", "STL Files (*.stl)");
         if (fname.isEmpty()) return;
@@ -169,6 +225,14 @@ private slots:
     }
     void onRunMultisphere() {
         if (currentSTL.isEmpty()) return;
+        infoBox->clear(); // Clear previous logs
+        infoBox->append("<b>--- Starting Multisphere Calculation ---</b>");
+        // 1. UI Feedback: Disable button and start "busy" animation
+        runBtn->setEnabled(false);
+        progressBar->setRange(0, 0); // Setting range 0-0 makes it an "Indeterminate" pulse bar
+        infoBox->setText("Processing... please wait.");// 1. UI Feedback: Disable button and start "busy" animation
+
+
         // --- Load mesh using GEMSS ---
         GEMSS::FastMesh mesh = GEMSS::load_mesh_fast(currentSTL.toStdString());
         GEMSS::MultisphereConfig config;
@@ -186,9 +250,18 @@ private slots:
         config.radius_offset_vox = radiusOffsetEdit->text().toFloat();
         config.search_window = searchWindowSpin->value();
         config.persistence = persistenceSpin->value();
-        // --- Run reconstruction ---
-        GEMSS::SpherePack pack = GEMSS::multisphere_from_mesh(mesh, config);
-        // --- Visualize spheres ---
+        // 3. Launch calculation in a background thread
+        QFuture<GEMSS::SpherePack> future = QtConcurrent::run(GEMSS::multisphere_from_mesh, mesh, config);
+        watcher->setFuture(future);        // --- Visualize spheres ---
+    }
+
+    void onProcessingFinished() { 
+        // 1. Get the result from the thread
+        GEMSS::SpherePack pack = watcher->result();
+        // 2. Stop the progress bar
+        progressBar->setRange(0, 100);
+        progressBar->setValue(100);
+        runBtn->setEnabled(true);
         // Color code spheres by radius
         float min_r = pack.radii.size() > 0 ? pack.radii.minCoeff() : 0.0f;
         float max_r = pack.radii.size() > 0 ? pack.radii.maxCoeff() : 1.0f;
@@ -254,6 +327,9 @@ private:
     QLineEdit *minRadiusRealEdit, *minCenterDistEdit, *precisionTargetEdit, *radiusOffsetEdit;
     QCheckBox *confineMeshBox, *pruneIsolatedBox, *showProgressBox;
     QTextEdit *infoBox;
+    QProgressBar *progressBar;
+    QPushButton *runBtn; // Move this from constructor to class member
+    QFutureWatcher<GEMSS::SpherePack> *watcher; // To watch the background task
     // VTK
     QVTKOpenGLNativeWidget *vtkWidget;
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow;
@@ -262,6 +338,8 @@ private:
     vtkSmartPointer<vtkAxesActor> axes;
     vtkSmartPointer<vtkActor> cubeActor;
     QString currentSTL;
+    //std
+    StdRedirector* redirector;
 };
 
 #include <QVTKOpenGLNativeWidget.h>

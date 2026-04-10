@@ -1,5 +1,3 @@
-
-
 /**
  * @file GEMSS-interface.h
  * @brief Umbrella header for the GEMSS-cpp library.
@@ -26,8 +24,7 @@
 namespace GEMSS {
 
 // --- Main Data Structures ---
-// See multisphere_datatypes.hpp for details
-// (Types and templates are now in MSS namespace)
+// See multisphere_datatypes.hpp and GEMSS_config.hpp for details
 
 // --- Main API Functions ---
 

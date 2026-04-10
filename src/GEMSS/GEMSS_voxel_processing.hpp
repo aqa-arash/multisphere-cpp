@@ -1,7 +1,3 @@
-#ifndef GEMSS_VOXEL_PROCESSING_HPP
-#define GEMSS_VOXEL_PROCESSING_HPP
-
-
 /**
  * @file multisphere_voxel_processing.hpp
  * @brief Voxel grid processing utilities for GEMSS.
@@ -11,6 +7,11 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+
+#ifndef GEMSS_VOXEL_PROCESSING_HPP
+#define GEMSS_VOXEL_PROCESSING_HPP
+
 
 #include <iostream>
 #include <vector>
@@ -169,7 +170,7 @@ inline Eigen::Vector3f shift_voxel_center(
         float val = data_ptr[base_idx];
         float sx = 0.0f, sy = 0.0f, sz = 0.0f;
 
-        // X-axis check (Prefetched contiguous strides)
+        // X-axis check (first neighbor must be equal, second neighbor must be lower to confirm slope direction)
         if (std::abs(data_ptr[base_idx + stride_x] - val) <= epsilon && 
             data_ptr[base_idx + 2 * stride_x] < val - epsilon) sx = 1.0f;
         else if (std::abs(data_ptr[base_idx - stride_x] - val) <= epsilon && 
@@ -181,7 +182,7 @@ inline Eigen::Vector3f shift_voxel_center(
         else if (std::abs(data_ptr[base_idx - stride_y] - val) <= epsilon && 
                  data_ptr[base_idx - 2 * stride_y] < val - epsilon) sy = -1.0f;
 
-        // Z-axis check (Perfect cache locality)
+        // Z-axis check 
         if (std::abs(data_ptr[base_idx + 1] - val) <= epsilon && 
             data_ptr[base_idx + 2] < val - epsilon) sz = 1.0f;
         else if (std::abs(data_ptr[base_idx - 1] - val) <= epsilon && 

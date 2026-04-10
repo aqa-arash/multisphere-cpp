@@ -1,6 +1,3 @@
-#ifndef GEMSS_RECONSTRUCTION_HPP
-#define GEMSS_RECONSTRUCTION_HPP
-
 
 /**
  * @file multisphere_reconstruction.hpp
@@ -12,6 +9,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_RECONSTRUCTION_HPP
+#define GEMSS_RECONSTRUCTION_HPP
 
 #include <iostream>
 #include <vector>
@@ -151,7 +151,7 @@ inline SpherePack multisphere_from_voxels(
         // Compute physical properties of the multisphere union
         compute_multisphere_physics(result, recon_mask);
     }
-    if (config.compute_physics == 2) {
+    else if (config.compute_physics == 2) {
         // Compute physical properties based on original mesh (if available)
         compute_multisphere_physics(result, input_grid);
     }
@@ -228,7 +228,6 @@ inline SpherePack multisphere_from_mesh(
 
     return sp;
 }
-
 
 } // namespace MSS
 #endif // GEMSS_RECONSTRUCTION_HPP

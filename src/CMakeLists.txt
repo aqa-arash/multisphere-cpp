@@ -36,7 +36,7 @@ endforeach()
 # Build GUI if requested
 if(BUILD_GUI)
     # Find Qt and VTK (VTK 9+ modules)
-    find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    find_package(Qt5 COMPONENTS Widgets Concurrent REQUIRED)
     find_package(VTK COMPONENTS 
         CommonCore CommonDataModel FiltersSources FiltersCore FiltersGeneral 
         InteractionStyle RenderingCore RenderingOpenGL2 RenderingContextOpenGL2 
@@ -50,7 +50,7 @@ if(BUILD_GUI)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
     add_executable(gemss_gui gemss_gui.cpp)
-    target_link_libraries(gemss_gui PRIVATE GEMSS Qt5::Widgets ${VTK_LIBRARIES})
+    target_link_libraries(gemss_gui PRIVATE GEMSS Qt5::Widgets Qt5::Concurrent ${VTK_LIBRARIES})
     target_compile_options(gemss_gui PRIVATE -O3 -march=native)
     if (VTK_VERSION VERSION_GREATER_EQUAL "9.0")
         include(${VTK_USE_FILE})
