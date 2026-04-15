@@ -19,6 +19,27 @@
 
 using namespace GEMSS;
 
+
+/**
+ * @brief Print detailed information about a SpherePack to the console.
+ */
+void print_sphere_pack_info(const SpherePack& sp) {
+    std::cout << "Sphere Pack Info:" << std::endl;
+    std::cout << "      Number of spheres: " << sp.num_spheres() << std::endl;
+    std::cout << "      Max radius: " << sp.max_radius() << " units" << std::endl;
+    std::cout << "      Min radius: " << sp.min_radius() << " units" << std::endl;
+    std::cout << "      Accuracy: " << sp.precision << " units^3" << std::endl;
+    std::cout << "      Volume of union: " << sp.volume << " units^3" << std::endl;
+    std::cout << "      Center of mass: " << sp.center_of_mass.transpose() << " units" << std::endl;
+    std::cout << "      Bounding radius: " << sp.bounding_radius << " units" << std::endl;
+    std::cout << "      Principal moments: " << sp.principal_moments.transpose() << " units^5" << std::endl;
+    std::cout << "      Principal axes:\n" << sp.principal_axes << std::endl;
+
+}
+
+
+
+
 /**
  * @brief Entry point for mesh-based multisphere reconstruction.
  *
@@ -61,66 +82,21 @@ int main() {
             config
         );
         
-        export_to_csv(single_sp, model_name + "_pruned.csv");
-        export_to_vtk(single_sp, model_name + "_pruned.vtk");
+        export_to_csv(single_sp, model_name + "_recon.csv");
+        export_to_vtk(single_sp, model_name + "_recon.vtk");
 
+        print_sphere_pack_info(single_sp);
 
-        std::cout << "\nReconstruction Complete!" << std::endl;
-        std::cout << "--Single Sphere : \n Spheres found: " << single_sp.num_spheres() << std::endl;
-        std::cout << "Max radius: " << single_sp.max_radius() << " units" << std::endl;
-        std::cout << "Min radius: " << single_sp.min_radius() << " units" << std::endl;
-        std::cout << "Volume of union: " << single_sp.volume << " units^3" << std::endl;
-        std::cout << "Center of mass: " << single_sp.center_of_mass.transpose() << " units" << std::endl;
-        std::cout << "Principal moments: " << single_sp.principal_moments.transpose() << " units^5" << std::endl;
-        std::cout << "Principal axes:\n" << single_sp.principal_axes << std::endl;
+        auto binary_grid = mesh_to_binary_grid(example_mesh, config); // Update config with min_radius_vox if minimum_radius_real is set
+        compute_multisphere_physics(single_sp, binary_grid); // Recompute physics based on original mesh properties
 
-
-        config.compute_physics = 2; // Compute physical properties based on original mesh (if available)
-        single_sp = multisphere_from_mesh(
-            example_mesh,
-            config
-        );
         
-        export_to_csv(single_sp, model_name + "_pruned.csv");
-        export_to_vtk(single_sp, model_name + "_pruned.vtk");
+        export_to_csv(single_sp, base_name + "_orig.csv");
+        export_to_vtk(single_sp, base_name + "_orig.vtk");
+
+        print_sphere_pack_info(single_sp);
 
 
-        std::cout << "\nReconstruction Complete!" << std::endl;
-        std::cout << "--Single Sphere : \n Spheres found: " << single_sp.num_spheres() << std::endl;
-        std::cout << "Max radius: " << single_sp.max_radius() << " units" << std::endl;
-        std::cout << "Min radius: " << single_sp.min_radius() << " units" << std::endl;
-        std::cout << "Volume of union: " << single_sp.volume << " units^3" << std::endl;
-        std::cout << "Center of mass: " << single_sp.center_of_mass.transpose() << " units" << std::endl;
-        std::cout << "Principal moments: " << single_sp.principal_moments.transpose() << " units^5" << std::endl;
-        std::cout << "Principal axes:\n" << single_sp.principal_axes << std::endl;
-
-
-
-        config.prune_isolated_spheres = false; // Disable pruning for double sphere test
-        single_sp = multisphere_from_mesh(
-            example_mesh,
-            config
-        );
-
-        export_to_csv(single_sp, model_name + ".csv");
-        export_to_vtk(single_sp, model_name + ".vtk");
-
-
-        std::cout << "\nReconstruction Complete!" << std::endl;
-        std::cout << "--Single Sphere : \n Spheres found: " << single_sp.num_spheres() << std::endl;
-        std::cout << "Max radius: " << single_sp.max_radius() << " units" << std::endl;
-        std::cout << "Min radius: " << single_sp.min_radius() << " units" << std::endl;
-        std::cout << "Volume of union: " << single_sp.volume << " units^3" << std::endl;
-        std::cout << "Center of mass: " << single_sp.center_of_mass.transpose() << " units" << std::endl;
-        std::cout << "Principal moments: " << single_sp.principal_moments.transpose() << " units^5" << std::endl;
-        std::cout << "Principal axes:\n" << single_sp.principal_axes << std::endl;
-
-
-
-        // 3. Visualization or Export
-        export_to_csv(single_sp, model_name + ".csv");
-        export_to_vtk(single_sp, model_name + ".vtk");
-        std::cout << "To see the result, export to CSV or recompile with VTK enabled." << std::endl;
     }
 
     return 0;

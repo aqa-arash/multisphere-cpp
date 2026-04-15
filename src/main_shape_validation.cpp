@@ -30,6 +30,8 @@ struct AnalyticalResult {
 // Utility: Print comparison and write CSV row (with principal axes)
 void print_comparison_and_write_csv(const std::string& shape, int compute_physics, const SpherePack& sp, const AnalyticalResult& ref, std::ostream& csv) {
     cout << "\n==== " << shape << " (compute_physics=" << compute_physics << ") ====" << endl;
+    cout << "Number of spheres: " << sp.num_spheres() << endl;
+    cout << "Precision: " << sp.precision << endl;
     cout << "Analytical Volume: " << ref.volume << ", Reconstructed: " << sp.volume << endl;
     cout << "Analytical COM: " << ref.center_of_mass.transpose() << ", Reconstructed: " << sp.center_of_mass.transpose() << endl;
     cout << "Analytical Moments: " << ref.principal_moments.transpose() << ", Reconstructed: " << sp.principal_moments.transpose() << endl;
@@ -182,8 +184,8 @@ int main() {
     auto ref_box = analytical_box(l_box, l_box, l_box, cx_box, cy_box, cz_box);
 
     // Cylinder (aligned with z)
-    double r_cyl = 3.0;
-    int min_z_cyl = 50, max_z_cyl = 150;
+    double r_cyl = 2.0;
+    int min_z_cyl = 10, max_z_cyl = 190;
     double h_cyl = (max_z_cyl - min_z_cyl) * v_size;
     double cx_cyl = cx, cy_cyl = cy;
     double cz_cyl = ((min_z_cyl + max_z_cyl - 1) / 2.0) * v_size;
@@ -208,10 +210,12 @@ int main() {
 
     // Config
     MultisphereConfig config;
-    config.search_window = 3;
-    config.min_radius_vox = 3;
+    config.search_window = 5;
+    config.min_radius_vox = 5;
     config.precision_target = 0.99f;
     config.max_spheres = 2000;
+    config.radius_offset_vox = 0.0f;
+    config.persistence = 3;
     config.show_progress = false;
     config.confine_mesh = false;
 

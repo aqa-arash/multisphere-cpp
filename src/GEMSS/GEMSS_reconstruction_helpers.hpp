@@ -136,7 +136,7 @@ inline Eigen::MatrixX4f filter_and_shift_peaks(
                 float dx = px - sphere[0];
                 float dy = py - sphere[1];
                 float dz = pz - sphere[2];
-                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq * sphere[3] * sphere[3]) { // Scale by radius to allow closer placement of smaller spheres
+                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq * sphere[3]) { // Scale by sqrt (radius) to allow closer placement of smaller spheres
                     collision = true;
                     break;
                 }

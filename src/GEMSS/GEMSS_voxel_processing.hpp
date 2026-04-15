@@ -170,7 +170,7 @@ inline Eigen::Vector3f shift_voxel_center(
         float val = data_ptr[base_idx];
         float sx = 0.0f, sy = 0.0f, sz = 0.0f;
 
-        // X-axis check (first neighbor must be equal, second neighbor must be lower to confirm slope direction)
+        // X-axis check 
         if (std::abs(data_ptr[base_idx + stride_x] - val) <= epsilon && 
             data_ptr[base_idx + 2 * stride_x] < val - epsilon) sx = 1.0f;
         else if (std::abs(data_ptr[base_idx - stride_x] - val) <= epsilon && 
@@ -255,7 +255,7 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
 template <typename T>
 void spheres_to_grid(VoxelGrid<T>& grid,
     const Eigen::MatrixX4f& sphere_table,
-    T fill_value = static_cast<T>(1), float coefficient = 1.0f)
+    T fill_value = static_cast<T>(1), float coefficient = 0.0f)
 {
     if (sphere_table.rows() == 0) return;
     #pragma omp parallel for
@@ -263,8 +263,10 @@ void spheres_to_grid(VoxelGrid<T>& grid,
         float cx = sphere_table(i, 0);
         float cy = sphere_table(i, 1);
         float cz = sphere_table(i, 2);
-        float radius_vox = sphere_table(i, 3) * coefficient;
-        if (radius_vox <= 0) continue;
+        float radius_vox = sphere_table(i, 3);
+        if (coefficient != 0.0f) {
+            radius_vox = std::sqrt (radius_vox) * coefficient;
+        }
         grid.sphere_kernel(cx, cy, cz, radius_vox, fill_value);
     }
 }
