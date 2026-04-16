@@ -221,27 +221,25 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
         throw std::invalid_argument("Shapes must match.");
     }
 
-    size_t total_target = 0;
-    size_t mismatches = 0;
+    size_t target_vol = 0;
+    size_t recon_vol = 0;
+    size_t intersection = 0;
     const size_t n = target.data.size();
 
-    #pragma omp parallel for reduction(+:total_target, mismatches)
+    #pragma omp parallel for reduction(+:target_vol, recon_vol, intersection)
     for (size_t i = 0; i < n; ++i) {
         bool t = (target.data[i] > static_cast<T>(0));
         bool r = (reconstruction.data[i] > static_cast<U>(0));
-        if (t) total_target++;
-        if (t != r) mismatches++;
+        
+        if (t) target_vol++;
+        if (r) recon_vol++;
+        if (t && r) intersection++;
     }
 
-    if (total_target == 0) {
-        size_t total_recon = 0;
-        #pragma omp parallel for reduction(+:total_recon)
-        for (size_t i = 0; i < n; ++i) if (reconstruction.data[i]) total_recon++;
-        return (total_recon == 0) ? 1.0 : 0.0;
-    }
-
-    float mismatch_fraction = static_cast<float>(mismatches) / static_cast<float>(total_target);
-    return std::clamp(1.0f - mismatch_fraction, 0.0f, 1.0f);
+    if (target_vol == 0 && recon_vol == 0) return 1.0;
+    if (target_vol == 0 || recon_vol == 0) return 0.0;
+    
+    return (2.0 * static_cast<double>(intersection)) / static_cast<double>(target_vol + recon_vol);
 }
 
 /**
