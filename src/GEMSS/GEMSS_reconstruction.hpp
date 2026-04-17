@@ -162,7 +162,7 @@ inline SpherePack multisphere_from_voxels(
 /**
  * @brief Construct a multisphere representation directly from a triangle mesh.
  * Logically equivalent to the Python version, optimized for C++.
- * @param mesh Input FastMesh.
+ * @param mesh Input STLMesh.
  * @param config MultisphereConfig struct containing all configuration parameters:
  * @param div Voxel grid division (resolution).
  * @param padding Grid padding.
@@ -177,7 +177,7 @@ inline SpherePack multisphere_from_voxels(
  * @return SpherePack reconstruction result.
  */
 inline SpherePack multisphere_from_mesh(
-    const FastMesh& mesh,
+    const STLMesh& mesh,
     const MultisphereConfig& config = MultisphereConfig()
 ) {
     if (mesh.is_empty()) {

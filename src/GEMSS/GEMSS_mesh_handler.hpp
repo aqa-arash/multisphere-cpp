@@ -52,12 +52,12 @@ namespace GEMSS {
 /**
  * @brief Robust voxelizer using generalized winding number.
  *        Best for "dirty" meshes (holes, self-intersections, internal faces).
- * @param mesh Input FastMesh.
+ * @param mesh Input STLMesh.
  * @param div Voxel grid division (resolution).
  * @param padding Grid padding.
  * @return VoxelGrid<uint8_t> representing mesh occupancy.
  */
-inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereConfig & config ) {
+inline VoxelGrid<uint8_t> mesh_to_binary_grid(const STLMesh& mesh, MultisphereConfig & config ) {
     if (mesh.vertices.rows() == 0) throw std::invalid_argument("Mesh is empty.");
     // 1. Setup Grid & Bounds
     Eigen::Vector3f min_v = mesh.vertices.colwise().minCoeff().transpose();
@@ -147,9 +147,9 @@ inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereC
 /**
  * @brief Constrains sphere radii so they do not exceed the distance to the nearest surface.
  * @param pack SpherePack to modify.
- * @param mesh FastMesh reference mesh.
+ * @param mesh STLMesh reference mesh.
  */
-inline void constrain_radii_to_sdf(SpherePack& pack, const FastMesh& mesh) {
+inline void constrain_radii_to_sdf(SpherePack& pack, const STLMesh& mesh) {
     if (mesh.is_empty()) return;
 
     Eigen::VectorXf sdf;

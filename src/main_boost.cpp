@@ -326,7 +326,7 @@ int main() {
     }
 
     export_voxel_grid_to_vtk(medial_axis_grid, csv_dir + "/medial_axis.vtk");
-    FastMesh Medial = grid_to_mesh(medial_axis_grid);
+    STLMesh Medial = grid_to_mesh(medial_axis_grid);
     save_mesh_to_stl(Medial, csv_dir + "/surface_mesh.stl");
 
 

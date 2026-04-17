@@ -274,10 +274,10 @@ void spheres_to_grid(VoxelGrid<T>& grid,
  * @tparam T Voxel grid data type.
  * @param grid Input voxel grid.
  * @param threshold Threshold for voxel occupancy.
- * @return FastMesh mesh structure.
+ * @return STLMesh mesh structure.
  */
 template <typename T>
-FastMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0)) {
+STLMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0)) {
     std::vector<Eigen::Vector3f> out_verts;
     std::vector<Eigen::Vector3i> out_tris;
 
@@ -336,7 +336,7 @@ FastMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0))
         }
     }
 
-    FastMesh mesh;
+    STLMesh mesh;
     mesh.vertices.resize(out_verts.size(), 3);
     mesh.triangles.resize(out_tris.size(), 3);
 

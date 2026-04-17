@@ -1,8 +1,8 @@
 /**
- * @file multisphere_datatypes.hpp
+ * @file GEMSS_datatypes.hpp
  * @brief Core data structures for multisphere-cpp library (namespace GEMSS).
  *
- * Defines FastMesh, SpherePack, VoxelGrid, and utility types for mesh and voxel operations.
+ * Defines STLMesh, SpherePack, VoxelGrid, and utility types for mesh and voxel operations.
  * Provides distance transform and sphere kernel generation.
  *
  * @author Arash Moradian
@@ -27,9 +27,9 @@
 namespace GEMSS {
 
 /**
- * @brief Mesh structure for fast voxelization.
+ * @brief Mesh structures.
  */
-struct FastMesh {
+struct STLMesh {
     Eigen::Matrix<float, Eigen::Dynamic, 3, Eigen::RowMajor> vertices; ///< Mesh vertices (float, 3D)
     Eigen::Matrix<int,   Eigen::Dynamic, 3, Eigen::RowMajor> triangles; ///< Mesh triangles (int, 3D)
     /**

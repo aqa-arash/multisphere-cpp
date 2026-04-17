@@ -234,7 +234,7 @@ private slots:
 
 
         // --- Load mesh using GEMSS ---
-        GEMSS::FastMesh mesh = GEMSS::load_mesh_fast(currentSTL.toStdString());
+        GEMSS::STLMesh mesh = GEMSS::load_mesh(currentSTL.toStdString());
         GEMSS::MultisphereConfig config;
         config.div = divSpin->value();
         config.padding = paddingSpin->value();

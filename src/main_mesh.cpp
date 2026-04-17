@@ -55,7 +55,7 @@ int main() {
 
     for (const auto& model_name : models) {
         // 1. Load mesh from file
-        FastMesh example_mesh = load_mesh_fast(model_name);
+        STLMesh example_mesh = load_mesh(model_name);
 
         // --- DEBUG SNIPPET ---
         // Uncomment to save mesh for debugging
@@ -91,8 +91,8 @@ int main() {
         compute_multisphere_physics(single_sp, binary_grid); // Recompute physics based on original mesh properties
 
         
-        export_to_csv(single_sp, base_name + "_orig.csv");
-        export_to_vtk(single_sp, base_name + "_orig.vtk");
+        export_to_csv(single_sp, model_name + "_orig.csv");
+        export_to_vtk(single_sp, model_name + "_orig.vtk");
 
         print_sphere_pack_info(single_sp);
 

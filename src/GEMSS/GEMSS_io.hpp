@@ -25,9 +25,9 @@ namespace GEMSS {
 /**
  * @brief Loads a mesh from a binary STL file.
  * @param path Path to STL file.
- * @return FastMesh structure.
+ * @return STLMesh structure.
  */
-inline FastMesh load_mesh_fast(const std::string& path) {
+inline STLMesh load_mesh(const std::string& path) {
     std::ifstream file(path, std::ios::binary);
     if (!file) throw std::runtime_error("File not found: " + path);
 
@@ -48,7 +48,7 @@ inline FastMesh load_mesh_fast(const std::string& path) {
         throw std::runtime_error("Malformed Binary STL: Cannot read file or file too small for claimed triangle count.");
     }
 
-    if (num_triangles == 0) return FastMesh();
+    if (num_triangles == 0) return STLMesh();
 
     const uint32_t total_raw_vertices = num_triangles * 3;
     std::vector<RawVertex> raw_verts;
@@ -107,8 +107,8 @@ inline FastMesh load_mesh_fast(const std::string& path) {
         remap[raw_verts[i].original_id] = current_unique_id;
     }
 
-    // 4. Construct Final FastMesh
-    FastMesh mesh;
+    // 4. Construct Final STLMesh
+    STLMesh mesh;
     mesh.vertices.resize(unique_vertices.size(), 3);
     mesh.triangles.resize(num_triangles, 3);
 
@@ -222,11 +222,11 @@ inline void export_voxel_grid_to_vtk(const VoxelGrid<T>& grid, const std::string
 
 
 /**
- * @brief Saves a FastMesh to a binary STL file.
- * @param mesh FastMesh to save.
+ * @brief Saves a STLMesh to a binary STL file.
+ * @param mesh STLMesh to save.
  * @param output_path Output STL file path.
  */
-inline void save_mesh_to_stl(const FastMesh& mesh, const std::string& output_path) {
+inline void save_mesh_to_stl(const STLMesh& mesh, const std::string& output_path) {
     std::ofstream file(output_path, std::ios::binary);
     if (!file) throw std::runtime_error("Could not open file for writing: " + output_path);
 
