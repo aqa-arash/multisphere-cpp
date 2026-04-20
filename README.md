@@ -16,9 +16,9 @@
 </p>
 ---
 
-# GEMSS - Generator of Enriched Multi-Sphere Shapes
+# GEMSS - GEnerator of Multi-Sphere Shapes
 
-`GEMSS` creates overlapping-sphere representations of arbitrary 3D geometries based on voxelized Euclidean distance transforms (EDT) and feature-enhanced distance transform (FEDT) fields. It **enriches** the output with physical metadata—including Center of Mass (CoM), Inertia Tensors, and Principal Moments—necessary for high-fidelity Discrete Element Method (DEM) and Molecular Dynamics (MD) simulations.
+`GEMSS` creates overlapping-sphere representations of arbitrary 3D geometries based on voxelized Euclidean distance transforms (EDT) and feature-enhanced distance transform (FEDT) fields. It equips the output with physical properties—including Center of Mass (CoM), Inertia Tensors, and Principal Moments—necessary for Discrete Element Method (DEM) and Molecular Dynamics (MD) simulations.
 
 **This repository is a fork of the [Python implementation by Felix Buchele](https://github.com/FelixBuchele/multisphere).**
 
