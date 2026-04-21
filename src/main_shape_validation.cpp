@@ -32,7 +32,7 @@ void print_comparison_and_write_csv(const std::string& shape, int compute_physic
     cout << "\n==== " << shape << " (compute_physics=" << compute_physics << ") ====" << endl;
     cout << "Number of spheres: " << sp.num_spheres() << endl;
     cout << "Precision: " << sp.precision << endl;
-    cout << "Analytical Volume: " << ref.volume << ", Reconstructed: " << sp.volume << endl;
+    cout << "Analytical Volume: " << ref.volume << ", Reconstructed: " << sp.mass << endl;
     cout << "Analytical COM: " << ref.center_of_mass.transpose() << ", Reconstructed: " << sp.center_of_mass.transpose() << endl;
     cout << "Analytical Moments: " << ref.principal_moments.transpose() << ", Reconstructed: " << sp.principal_moments.transpose() << endl;
     cout << "Analytical Principal Axes (columns):\n";
@@ -40,7 +40,7 @@ void print_comparison_and_write_csv(const std::string& shape, int compute_physic
     cout << "Reconstructed Principal Axes (columns):\n" << sp.principal_axes << endl;
 
     csv << shape << "," << compute_physics << ","
-        << ref.volume << "," << sp.volume << ","
+        << ref.volume << "," << sp.mass << ","
         << ref.center_of_mass.transpose() << "," << sp.center_of_mass.transpose() << ","
         << ref.principal_moments.transpose() << "," << sp.principal_moments.transpose();
     // Analytical axes (identity, 9 values)

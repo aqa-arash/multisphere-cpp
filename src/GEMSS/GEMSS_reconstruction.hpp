@@ -146,6 +146,7 @@ inline SpherePack multisphere_from_voxels(
     #endif
 
     SpherePack result(centers_phys, radii_phys);
+    result.density = config.density; // Set density for physics computations
     result.precision = final_precision;
     if (config.compute_physics == 1) {
         // Compute physical properties of the multisphere union

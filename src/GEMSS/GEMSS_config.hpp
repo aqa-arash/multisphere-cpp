@@ -18,22 +18,23 @@ struct MultisphereConfig {
     float min_center_distance_rel = 0.5f; // min center distance (relative)
     int search_window = 2;       // neighbor distance for peaks
     float radius_offset_vox = 0.5f; // radius correction
+    int min_radius_vox = 2;      // min sphere radius (voxels)
 
 
     // --- Convergence & limits ---
-    int min_radius_vox = 2;      // min sphere radius (voxels)
     float precision_target = 1.0f; // target precision
     int max_spheres = 0;         // max spheres (0 = unlimited)
     int persistence = 2;         // solver persistence
 
     // --- Utilities & prior state ---
     int compute_physics = 2;     // compute physics properties
+    float density = 1.0f;        // material density for mass properties 
     bool prune_isolated_spheres = false; // remove isolated spheres
     bool show_progress = true;   // print progress
     Eigen::MatrixX4f initial_sphere_table = Eigen::MatrixX4f(0, 4); // initial spheres
     
 };
 
-} // namespace MSS
+} // namespace GEMSS
 
 #endif // GEMSS_CONFIG_HPP

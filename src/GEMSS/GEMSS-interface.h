@@ -133,6 +133,12 @@ inline Eigen::MatrixX4f filter_largest_sphere_network(const Eigen::MatrixX4f& sp
 inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_t>& voxelGrid); 
 
 
+/**
+ * @brief Print detailed information about a SpherePack to the console.
+ */
+void print_sphere_pack_info(const SpherePack& sp);
+
+
 } // namespace GEMSS
 
 

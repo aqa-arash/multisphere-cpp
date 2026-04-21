@@ -15,16 +15,6 @@
 
 using namespace GEMSS;
 
-void print_sphere_pack_info(const SpherePack& sp) {
-    std::cout << "Sphere Pack Info:" << std::endl;
-    std::cout << "      Number of spheres: " << sp.num_spheres() << std::endl;
-    std::cout << "      Max radius: " << sp.max_radius() << " units" << std::endl;
-    std::cout << "      Min radius: " << sp.min_radius() << " units" << std::endl;
-    std::cout << "      Volume of union: " << sp.volume << " units^3" << std::endl;
-    std::cout << "      Center of mass: " << sp.center_of_mass.transpose() << " units" << std::endl;
-    std::cout << "      Principal moments: " << sp.principal_moments.transpose() << " units^5" << std::endl;
-    std::cout << "      Principal axes:\n" << sp.principal_axes << std::endl;
-}
 
 int main() {
     std::cout << "--- Multisphere Rectangle Test ---" << std::endl;
