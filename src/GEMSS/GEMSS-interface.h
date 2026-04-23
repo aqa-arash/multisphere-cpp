@@ -136,7 +136,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
 /**
  * @brief Print detailed information about a SpherePack to the console.
  */
-void print_sphere_pack_info(const SpherePack& sp);
+inline void print_sphere_pack_info(const SpherePack& sp);
 
 
 } // namespace GEMSS

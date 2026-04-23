@@ -264,7 +264,7 @@ inline void save_mesh_to_stl(const STLMesh& mesh, const std::string& output_path
 /**
  * @brief Print detailed information about a SpherePack to the console.
  */
-void print_sphere_pack_info(const SpherePack& sp) {
+inline void print_sphere_pack_info(const SpherePack& sp) {
     std::cout << "Sphere Pack Info:" << std::endl;
     std::cout << "      Number of spheres: " << sp.num_spheres() << std::endl;
     std::cout << "      Max radius: " << sp.max_radius() << " units" << std::endl;
