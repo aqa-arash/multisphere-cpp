@@ -15,7 +15,7 @@ struct MultisphereConfig {
     bool confine_mesh = false;   // confine to mesh boundary
 
     // --- Peak detection and filtering ---
-    float min_center_distance_rel = 0.5f; // min center distance (relative)
+    float min_center_distance_rel = 1.4f; // min center distance (relative) computed as k <= sqrt(min_radius)
     int search_window = 2;       // neighbor distance for peaks
     float radius_offset_vox = 0.5f; // radius correction
     int min_radius_vox = 2;      // min sphere radius (voxels)
