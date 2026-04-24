@@ -1,5 +1,3 @@
-
-
 /**
  * @file GEMSS-interface.h
  * @brief Umbrella header for the GEMSS-cpp library.
@@ -26,33 +24,32 @@
 namespace GEMSS {
 
 // --- Main Data Structures ---
-// See multisphere_datatypes.hpp for details
-// (Types and templates are now in MSS namespace)
+// See multisphere_datatypes.hpp and GEMSS_config.hpp for details
 
 // --- Main API Functions ---
 
 /**
  * @brief Load a mesh from a binary STL file.
  * @param path Path to STL file.
- * @return FastMesh structure.
+ * @return STLMesh structure.
  */
-inline FastMesh load_mesh_fast(const std::string& path);
+inline STLMesh load_mesh(const std::string& path);
 
 /**
- * @brief Save a FastMesh to a binary STL file.
- * @param mesh FastMesh to save.
+ * @brief Save a STLMesh to a binary STL file.
+ * @param mesh STLMesh to save.
  * @param output_path Output STL file path.
  */
-inline void save_mesh_to_stl(const FastMesh& mesh, const std::string& output_path);
+inline void save_mesh_to_stl(const STLMesh& mesh, const std::string& output_path);
 
 /**
  * @brief Voxelize a mesh using the robust winding number method.
- * @param mesh Input FastMesh.
+ * @param mesh Input STLMesh.
  * @param config MultisphereConfig struct containing all configuration parameters.
  * @note if minimum_radius_real is set in config, it will be used to determine the min_radius_vox size and updates the config.
  * @return VoxelGrid<bool> representing mesh occupancy.
  */
-inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereConfig & config );
+inline VoxelGrid<uint8_t> mesh_to_binary_grid(const STLMesh& mesh, MultisphereConfig & config );
 
 /**
  * @brief Multisphere reconstruction from a voxel grid.
@@ -74,7 +71,7 @@ inline SpherePack multisphere_from_voxels(
 
 /**
  * @brief Multisphere reconstruction directly from a triangle mesh.
- * @param mesh Input FastMesh.
+ * @param mesh Input STLMesh.
  * @param config MultisphereConfig struct containing all configuration parameters:
  * @param div Voxel grid division (resolution).
  * @param padding Grid padding.
@@ -89,7 +86,7 @@ inline SpherePack multisphere_from_voxels(
  * @return SpherePack reconstruction result.
  */
 inline SpherePack multisphere_from_mesh(
-	const FastMesh& mesh,
+	const STLMesh& mesh,
 	const MultisphereConfig& config //= MultisphereConfig()
 );
 
@@ -134,6 +131,12 @@ inline Eigen::MatrixX4f filter_largest_sphere_network(const Eigen::MatrixX4f& sp
  * @param voxelGrid Input binary voxel grid.
  */
 inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_t>& voxelGrid); 
+
+
+/**
+ * @brief Print detailed information about a SpherePack to the console.
+ */
+inline void print_sphere_pack_info(const SpherePack& sp);
 
 
 } // namespace GEMSS

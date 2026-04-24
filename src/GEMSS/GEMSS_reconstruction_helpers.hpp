@@ -1,6 +1,3 @@
-#ifndef GEMSS_RECONSTRUCTION_HELPERS_HPP
-#define GEMSS_RECONSTRUCTION_HELPERS_HPP
-
 
 /**
  * @file multisphere_reconstruction_helpers.hpp
@@ -11,6 +8,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_RECONSTRUCTION_HELPERS_HPP
+#define GEMSS_RECONSTRUCTION_HELPERS_HPP
 
 #include <iostream>
 #include <vector>
@@ -28,26 +28,6 @@
 #include "GEMSS_voxel_processing.hpp"
 
 namespace GEMSS {
-
-/**
- * @brief Computes squared Euclidean distance between two 3D points.
- * @param a First point.
- * @param b Second point.
- * @return Squared distance.
- */
-inline float get_dist_sq(const Eigen::Vector3f& a, const Eigen::Vector3f& b) {
-    return (a - b).squaredNorm();
-}
-
-/**
- * @brief Packed struct for cache-friendly sorting of peaks.
- */
-struct PeakEntry {
-    float val;      ///< Pre-fetched distance value
-    int x, y, z;    ///< Coordinates
-    float radius;   ///< Radius at this peak
-    int index;      ///< Original index (optional)
-};
 
 /**
  * @brief Detects local maxima in a 3D volume.
@@ -156,7 +136,7 @@ inline Eigen::MatrixX4f filter_and_shift_peaks(
                 float dx = px - sphere[0];
                 float dy = py - sphere[1];
                 float dz = pz - sphere[2];
-                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq * sphere[3] * sphere[3]) { // Scale by radius to allow closer placement of smaller spheres
+                if ((dx*dx + dy*dy + dz*dz) < min_dist_sq * sphere[3]) { // Scale by sqrt (radius) to allow closer placement of smaller spheres
                     collision = true;
                     break;
                 }

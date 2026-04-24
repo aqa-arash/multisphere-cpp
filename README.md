@@ -16,9 +16,9 @@
 </p>
 ---
 
-# GEMSS - Generator of Enriched Multi-Sphere Shapes
+# GEMSS - GEnerator of Multi-Sphere Shapes
 
-`GEMSS` creates overlapping-sphere representations of arbitrary 3D geometries based on voxelized Euclidean distance transforms (EDT) and feature-enhanced distance transform (FEDT) fields. It **enriches** the output with physical metadata—including Center of Mass (CoM), Inertia Tensors, and Principal Moments—necessary for high-fidelity Discrete Element Method (DEM) and Molecular Dynamics (MD) simulations.
+`GEMSS` creates overlapping-sphere representations of arbitrary 3D geometries based on voxelized Euclidean distance transforms (EDT) and feature-enhanced distance transform (FEDT) fields. It equips the output with physical properties—including Center of Mass (CoM), Inertia Tensors, and Principal Moments—necessary for Discrete Element Method (DEM) and Molecular Dynamics (MD) simulations.
 
 **This repository is a fork of the [Python implementation by Felix Buchele](https://github.com/FelixBuchele/multisphere).**
 
@@ -213,14 +213,7 @@ No runtime visualization is included in this library.
 
 
 ### Details of the config 
-
-    persistence (int): > Defines the solver's "patience" when it stops finding new features.
-
-        Value = 1: The solver stops immediately if a standard search finds no new peaks.
-
-        Value > 1: If no peaks are found, the solver will amplify the missing details and retry up to N times.
-
-        Recommendation: Use higher values for complex geometries where small details are hard to detect at base resolution.
+[📖 Documentation](./README_CONFIG.md)
 
 ---
 
@@ -261,4 +254,4 @@ Felix Buchele, Patric Müller, Thorsten Pöschel,
 
 ## Contact & Support
 
-For questions, bug reports, or contributions, please [open an issue](https://github.com/aqa-arash/multisphere-cpp/issues)
+For questions, bug reports, or contributions, please [open an issue](https://github.com/aqa-arash/GEMSS/issues)

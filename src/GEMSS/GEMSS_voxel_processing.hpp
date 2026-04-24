@@ -1,7 +1,3 @@
-#ifndef GEMSS_VOXEL_PROCESSING_HPP
-#define GEMSS_VOXEL_PROCESSING_HPP
-
-
 /**
  * @file multisphere_voxel_processing.hpp
  * @brief Voxel grid processing utilities for GEMSS.
@@ -11,6 +7,11 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+
+#ifndef GEMSS_VOXEL_PROCESSING_HPP
+#define GEMSS_VOXEL_PROCESSING_HPP
+
 
 #include <iostream>
 #include <vector>
@@ -169,7 +170,7 @@ inline Eigen::Vector3f shift_voxel_center(
         float val = data_ptr[base_idx];
         float sx = 0.0f, sy = 0.0f, sz = 0.0f;
 
-        // X-axis check (Prefetched contiguous strides)
+        // X-axis check 
         if (std::abs(data_ptr[base_idx + stride_x] - val) <= epsilon && 
             data_ptr[base_idx + 2 * stride_x] < val - epsilon) sx = 1.0f;
         else if (std::abs(data_ptr[base_idx - stride_x] - val) <= epsilon && 
@@ -181,7 +182,7 @@ inline Eigen::Vector3f shift_voxel_center(
         else if (std::abs(data_ptr[base_idx - stride_y] - val) <= epsilon && 
                  data_ptr[base_idx - 2 * stride_y] < val - epsilon) sy = -1.0f;
 
-        // Z-axis check (Perfect cache locality)
+        // Z-axis check 
         if (std::abs(data_ptr[base_idx + 1] - val) <= epsilon && 
             data_ptr[base_idx + 2] < val - epsilon) sz = 1.0f;
         else if (std::abs(data_ptr[base_idx - 1] - val) <= epsilon && 
@@ -220,27 +221,25 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
         throw std::invalid_argument("Shapes must match.");
     }
 
-    size_t total_target = 0;
-    size_t mismatches = 0;
+    size_t target_vol = 0;
+    size_t recon_vol = 0;
+    size_t intersection = 0;
     const size_t n = target.data.size();
 
-    #pragma omp parallel for reduction(+:total_target, mismatches)
+    #pragma omp parallel for reduction(+:target_vol, recon_vol, intersection)
     for (size_t i = 0; i < n; ++i) {
         bool t = (target.data[i] > static_cast<T>(0));
         bool r = (reconstruction.data[i] > static_cast<U>(0));
-        if (t) total_target++;
-        if (t != r) mismatches++;
+        
+        if (t) target_vol++;
+        if (r) recon_vol++;
+        if (t && r) intersection++;
     }
 
-    if (total_target == 0) {
-        size_t total_recon = 0;
-        #pragma omp parallel for reduction(+:total_recon)
-        for (size_t i = 0; i < n; ++i) if (reconstruction.data[i]) total_recon++;
-        return (total_recon == 0) ? 1.0 : 0.0;
-    }
-
-    float mismatch_fraction = static_cast<float>(mismatches) / static_cast<float>(total_target);
-    return std::clamp(1.0f - mismatch_fraction, 0.0f, 1.0f);
+    if (target_vol == 0 && recon_vol == 0) return 1.0;
+    if (target_vol == 0 || recon_vol == 0) return 0.0;
+    
+    return (2.0 * static_cast<double>(intersection)) / static_cast<double>(target_vol + recon_vol);
 }
 
 /**
@@ -254,7 +253,7 @@ double compute_voxel_precision(const VoxelGrid<T>& target,
 template <typename T>
 void spheres_to_grid(VoxelGrid<T>& grid,
     const Eigen::MatrixX4f& sphere_table,
-    T fill_value = static_cast<T>(1), float coefficient = 1.0f)
+    T fill_value = static_cast<T>(1), float coefficient = 0.0f)
 {
     if (sphere_table.rows() == 0) return;
     #pragma omp parallel for
@@ -262,8 +261,10 @@ void spheres_to_grid(VoxelGrid<T>& grid,
         float cx = sphere_table(i, 0);
         float cy = sphere_table(i, 1);
         float cz = sphere_table(i, 2);
-        float radius_vox = sphere_table(i, 3) * coefficient;
-        if (radius_vox <= 0) continue;
+        float radius_vox = sphere_table(i, 3);
+        if (coefficient != 0.0f) {
+            radius_vox = std::sqrt (radius_vox) * coefficient;
+        }
         grid.sphere_kernel(cx, cy, cz, radius_vox, fill_value);
     }
 }
@@ -273,10 +274,10 @@ void spheres_to_grid(VoxelGrid<T>& grid,
  * @tparam T Voxel grid data type.
  * @param grid Input voxel grid.
  * @param threshold Threshold for voxel occupancy.
- * @return FastMesh mesh structure.
+ * @return STLMesh mesh structure.
  */
 template <typename T>
-FastMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0)) {
+STLMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0)) {
     std::vector<Eigen::Vector3f> out_verts;
     std::vector<Eigen::Vector3i> out_tris;
 
@@ -335,7 +336,7 @@ FastMesh grid_to_mesh(const VoxelGrid<T>& grid, T threshold = static_cast<T>(0))
         }
     }
 
-    FastMesh mesh;
+    STLMesh mesh;
     mesh.vertices.resize(out_verts.size(), 3);
     mesh.triangles.resize(out_tris.size(), 3);
 

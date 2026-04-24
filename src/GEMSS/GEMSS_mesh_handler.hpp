@@ -1,7 +1,3 @@
-#ifndef GEMSS_MESH_HANDLER_HPP
-#define GEMSS_MESH_HANDLER_HPP
-
-
 /**
  * @file multisphere_mesh_handler.hpp
  * @brief Mesh voxelization and sphere pack constraint utilities for GEMSS.
@@ -11,6 +7,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_MESH_HANDLER_HPP
+#define GEMSS_MESH_HANDLER_HPP
 
 #include <vector>
 #include <cmath>
@@ -50,34 +49,15 @@
 // Namespace MSS for all library code
 namespace GEMSS {
 
-/** 
- * @brief Get the minimum axis-aligned bounding box dimension.
- * @param mesh Input mesh.
- * @return Minimum extent of the AABB.
- * Note: This is used to determine voxel size for grid construction. Where h = min_extent / div.
- */
-
-inline float get_min_AABB(const FastMesh & mesh)  {
-    // 1. Setup Grid & Bounds
-    Eigen::Vector3f min_v = mesh.vertices.colwise().minCoeff().transpose();
-    Eigen::Vector3f max_v = mesh.vertices.colwise().maxCoeff().transpose();
-    Eigen::Vector3f extents = max_v - min_v;
-
-    float min_extent = extents.minCoeff();
-    if (min_extent <= 1e-6) min_extent = (extents.maxCoeff() > 0 ? extents.maxCoeff() : 1.0f);
-
-    return min_extent;
-}
-
 /**
  * @brief Robust voxelizer using generalized winding number.
  *        Best for "dirty" meshes (holes, self-intersections, internal faces).
- * @param mesh Input FastMesh.
+ * @param mesh Input STLMesh.
  * @param div Voxel grid division (resolution).
  * @param padding Grid padding.
  * @return VoxelGrid<uint8_t> representing mesh occupancy.
  */
-inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereConfig & config ) {
+inline VoxelGrid<uint8_t> mesh_to_binary_grid(const STLMesh& mesh, MultisphereConfig & config ) {
     if (mesh.vertices.rows() == 0) throw std::invalid_argument("Mesh is empty.");
     // 1. Setup Grid & Bounds
     Eigen::Vector3f min_v = mesh.vertices.colwise().minCoeff().transpose();
@@ -167,9 +147,9 @@ inline VoxelGrid<uint8_t> mesh_to_binary_grid(const FastMesh& mesh, MultisphereC
 /**
  * @brief Constrains sphere radii so they do not exceed the distance to the nearest surface.
  * @param pack SpherePack to modify.
- * @param mesh FastMesh reference mesh.
+ * @param mesh STLMesh reference mesh.
  */
-inline void constrain_radii_to_sdf(SpherePack& pack, const FastMesh& mesh) {
+inline void constrain_radii_to_sdf(SpherePack& pack, const STLMesh& mesh) {
     if (mesh.is_empty()) return;
 
     Eigen::VectorXf sdf;

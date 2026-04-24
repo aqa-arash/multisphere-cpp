@@ -98,10 +98,6 @@ examples/output_voxel_example/*
 examples/**/*output*/
 examples/**/*output*/**
 
-# --- Allow placeholder files so folders exist in repo ---
-!examples/output_mesh_example/.gitkeep
-!examples/output_voxel_example/.gitkeep
-
 # --- Ignore compiled executables in examples ---
 examples/multisphere_app
 examples/multisphere_collision
@@ -113,6 +109,7 @@ examples/*.so
 examples/*.dll
 examples/*.vtk
 examples/*.csv
+
 
 # --- Ignore test and coverage outputs ---
 .pytest_cache/
@@ -221,9 +218,10 @@ Thumbs.db
 examples/output_mesh_example/*
 examples/output_voxel_example/*
 
-# Allow placeholder files so folders exist in repo
-!examples/output_mesh_example/.gitkeep
-!examples/output_voxel_example/.gitkeep
+# --- Ignore entire GUI and examples/samples directories ---
+GUI/
+examples/samples/
+
 
 # ----------------------------------------------------
 # Ignore compiled executables in examples
@@ -239,7 +237,7 @@ examples/*.bin
 examples/*.so
 examples/*.dll
 examples/*.vtk
-examples/*.cvs
+examples/*.csv
 
 # ----------------------------------------------------
 # Ignore any folder in `examples/` that contains the word "output"
@@ -248,3 +246,6 @@ examples/*.cvs
 # Matches: examples/output_mesh_example/, examples/some_output_dir/, examples/foo_output_bar/
 examples/**/*output*/
 examples/**/*output*/**
+
+
+src/batch_multisphere.cpp

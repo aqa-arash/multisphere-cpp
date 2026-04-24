@@ -1,6 +1,3 @@
-#ifndef GEMSS_RECONSTRUCTION_HPP
-#define GEMSS_RECONSTRUCTION_HPP
-
 
 /**
  * @file multisphere_reconstruction.hpp
@@ -12,6 +9,9 @@
  * @author Arash Moradian
  * @date 2026-03-09
  */
+
+#ifndef GEMSS_RECONSTRUCTION_HPP
+#define GEMSS_RECONSTRUCTION_HPP
 
 #include <iostream>
 #include <vector>
@@ -146,12 +146,13 @@ inline SpherePack multisphere_from_voxels(
     #endif
 
     SpherePack result(centers_phys, radii_phys);
+    result.density = config.density; // Set density for physics computations
     result.precision = final_precision;
     if (config.compute_physics == 1) {
         // Compute physical properties of the multisphere union
         compute_multisphere_physics(result, recon_mask);
     }
-    if (config.compute_physics == 2) {
+    else if (config.compute_physics == 2) {
         // Compute physical properties based on original mesh (if available)
         compute_multisphere_physics(result, input_grid);
     }
@@ -162,7 +163,7 @@ inline SpherePack multisphere_from_voxels(
 /**
  * @brief Construct a multisphere representation directly from a triangle mesh.
  * Logically equivalent to the Python version, optimized for C++.
- * @param mesh Input FastMesh.
+ * @param mesh Input STLMesh.
  * @param config MultisphereConfig struct containing all configuration parameters:
  * @param div Voxel grid division (resolution).
  * @param padding Grid padding.
@@ -177,7 +178,7 @@ inline SpherePack multisphere_from_voxels(
  * @return SpherePack reconstruction result.
  */
 inline SpherePack multisphere_from_mesh(
-    const FastMesh& mesh,
+    const STLMesh& mesh,
     const MultisphereConfig& config = MultisphereConfig()
 ) {
     if (mesh.is_empty()) {
@@ -228,7 +229,6 @@ inline SpherePack multisphere_from_mesh(
 
     return sp;
 }
-
 
 } // namespace MSS
 #endif // GEMSS_RECONSTRUCTION_HPP

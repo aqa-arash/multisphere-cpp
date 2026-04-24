@@ -1,6 +1,3 @@
-#ifndef GEMSS_PHYSICS_COMPUTATION_HPP
-#define GEMSS_PHYSICS_COMPUTATION_HPP
-
 /**
  * @file multisphere_physics_computation.hpp
  * @brief Physical property calculations for GEMSS.
@@ -11,6 +8,9 @@
  * @author Arash Moradian
  * @date 2026-03-12
  */
+
+#ifndef GEMSS_PHYSICS_COMPUTATION_HPP
+#define GEMSS_PHYSICS_COMPUTATION_HPP
 
 #include <cmath>
 #include <iostream>
@@ -72,7 +72,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
     }
 
     if (N_vox == 0) {
-        pack.volume = 0.0;
+        pack.mass = 0.0;
         pack.center_of_mass.setZero();
         pack.inertia_tensor.setZero();
         pack.principal_moments.setZero();
@@ -81,7 +81,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
     }
 
     double voxel_vol = vs * vs * vs;
-    pack.volume = N_vox * voxel_vol;
+    pack.mass =  N_vox * voxel_vol * pack.density; // mass = volume * density
 
     // 1. Calculate LOCAL Center of Mass
     double cx_local = sum_x / N_vox;
@@ -93,22 +93,22 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
                            cy_local + voxelGrid.origin.y(),
                            cz_local + voxelGrid.origin.z();
 
-    // 3. Parallel Axis Theorem (Calculated entirely in stable local space)
-    double Ixx = (sum_yy * voxel_vol) + (sum_zz * voxel_vol) - pack.volume * (cy_local * cy_local + cz_local * cz_local);
-    double Iyy = (sum_xx * voxel_vol) + (sum_zz * voxel_vol) - pack.volume * (cx_local * cx_local + cz_local * cz_local);
-    double Izz = (sum_xx * voxel_vol) + (sum_yy * voxel_vol) - pack.volume * (cx_local * cx_local + cy_local * cy_local);
+    // 3. Parallel Axis Theorem (Calculated entirely in local space)
+    double Ixx = (sum_yy * voxel_vol) + (sum_zz * voxel_vol) - pack.mass * (cy_local * cy_local + cz_local * cz_local);
+    double Iyy = (sum_xx * voxel_vol) + (sum_zz * voxel_vol) - pack.mass * (cx_local * cx_local + cz_local * cz_local);
+    double Izz = (sum_xx * voxel_vol) + (sum_yy * voxel_vol) - pack.mass * (cx_local * cx_local + cy_local * cy_local);
 
-    double Ixy = -(sum_xy * voxel_vol) + (pack.volume * cx_local * cy_local);
-    double Ixz = -(sum_xz * voxel_vol) + (pack.volume * cx_local * cz_local);
-    double Iyz = -(sum_yz * voxel_vol) + (pack.volume * cy_local * cz_local);
+    double Ixy = -(sum_xy * voxel_vol) + (pack.mass * cx_local * cy_local);
+    double Ixz = -(sum_xz * voxel_vol) + (pack.mass * cx_local * cz_local);
+    double Iyz = -(sum_yz * voxel_vol) + (pack.mass * cy_local * cz_local);
 
-    double self_inertia_total = pack.volume * (vs * vs) / 6.0;
+    double self_inertia_total = pack.mass * (vs * vs) / 6.0;
 
     pack.inertia_tensor << Ixx + self_inertia_total, Ixy, Ixz,
                            Ixy, Iyy + self_inertia_total, Iyz,
                            Ixz, Iyz, Izz + self_inertia_total;
 
-    // 4. Principal Moments and Axes with Analytical Solver (Highly optimized for 3x3 symmetric tensors)                       
+    // 4. Principal Moments and Axes with Analytical Solver                       
     // 4.1. Pre-condition the Inertia Tensor (Eliminates noise causing arbitrary degenerate rotations)
     // Use a threshold relative to the largest principal moment
     float max_I = pack.inertia_tensor.diagonal().maxCoeff();
@@ -118,7 +118,7 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
         return std::abs(v) < noise_threshold ? 0.0f : v;
     });
 
-    // 4.2. Fast Analytical 3x3 Solver (Avoids iterative overhead)
+    // 4.2. Analytical 3x3 Solver (Avoids iterative overhead)
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigensolver;
     eigensolver.computeDirect(pack.inertia_tensor);
 
@@ -153,9 +153,9 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
     for (size_t i = 0; i < pack.num_spheres(); ++i) {
         Eigen::Vector3f center = pack.centers.row(i);
         float radius = pack.radii(i);
-        
-        // Distance from global CoM to the sphere center + sphere radius
-        double dist = (center - pack.center_of_mass).norm() + radius + (vs * std::sqrt(3.0f) / 2.0f); // Add half voxel diagonal for safety
+
+        // Ensure pack.center_of_mass is cast to Vector3f for type consistency
+        double dist = (center - pack.center_of_mass.cast<float>()).norm() + radius + std::sqrt(3) * vs; // Add a diagonal voxel for safety
         if (dist > max_r) max_r = dist;
     }
     pack.bounding_radius = static_cast<float>(max_r);
