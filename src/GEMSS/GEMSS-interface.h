@@ -20,6 +20,7 @@
 #include "GEMSS_reconstruction_helpers.hpp"
 #include "GEMSS_reconstruction.hpp"
 #include "GEMSS_voxel_processing.hpp"
+#include "GEMSS_split"
 
 namespace GEMSS {
 
