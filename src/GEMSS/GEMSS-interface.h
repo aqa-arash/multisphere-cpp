@@ -139,6 +139,25 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
 inline void print_sphere_pack_info(const SpherePack& sp);
 
 
+// =============================================
+// Fracture utilities
+// =============================================
+
+
+/**
+ * @brief Splits a SpherePack and its voxel grid by a plane defined by a normal and a point.
+ *
+ * @param sp Input SpherePack.
+ * @param normal Plane normal vector (should be normalized).
+ * @param point Point on the plane (default: origin).
+ * @param config MultisphereConfig for voxelization.
+ * @return Tuple: (spheres_above, spheres_below, labeled_voxel_grid)
+ */
+inline std::pair<std::vector<SpherePack>, VoxelGrid<uint8_t>>
+split_sp(const SpherePack& sp, const Eigen::Vector3f& normal, const Eigen::Vector3f& point , const MultisphereConfig& config);
+
+
+
 } // namespace GEMSS
 
 

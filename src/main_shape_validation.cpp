@@ -33,6 +33,7 @@ void print_comparison_and_write_csv(const std::string& shape, int compute_physic
     cout << "Number of spheres: " << sp.num_spheres() << endl;
     cout << "Precision: " << sp.precision << endl;
     cout << "Analytical Volume: " << ref.volume << ", Reconstructed: " << sp.mass << endl;
+    cout << "Bounding Radius: " << sp.bounding_radius << endl;
     cout << "Analytical COM: " << ref.center_of_mass.transpose() << ", Reconstructed: " << sp.center_of_mass.transpose() << endl;
     cout << "Analytical Moments: " << ref.principal_moments.transpose() << ", Reconstructed: " << sp.principal_moments.transpose() << endl;
     cout << "Analytical Principal Axes (columns):\n";
