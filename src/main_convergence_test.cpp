@@ -46,7 +46,7 @@ int main() {
     // parameter study for cube reconstruction
     #pragma omp parallel for schedule(dynamic) 
     for (int i = 0; i < 2; ++i) {
-        int max_spheres_list[2] = {  1280,   2560};
+        int max_spheres_list[2] = {  1,   2};
         float md_list[2] =        {  3.0,    2.0};
         int max_spheres = max_spheres_list[i];
         float md = md_list[i];

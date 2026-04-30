@@ -80,8 +80,9 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
         return;
     }
 
+    double rho = pack.density;
     double voxel_vol = vs * vs * vs;
-    pack.mass =  N_vox * voxel_vol * pack.density; // mass = volume * density
+    pack.mass =  N_vox * voxel_vol * rho; // mass = volume * density
 
     // 1. Calculate LOCAL Center of Mass
     double cx_local = sum_x / N_vox;
@@ -94,13 +95,13 @@ inline void compute_multisphere_physics(SpherePack& pack, const VoxelGrid<uint8_
                            cz_local + voxelGrid.origin.z();
 
     // 3. Parallel Axis Theorem (Calculated entirely in local space)
-    double Ixx = (sum_yy * voxel_vol) + (sum_zz * voxel_vol) - pack.mass * (cy_local * cy_local + cz_local * cz_local);
-    double Iyy = (sum_xx * voxel_vol) + (sum_zz * voxel_vol) - pack.mass * (cx_local * cx_local + cz_local * cz_local);
-    double Izz = (sum_xx * voxel_vol) + (sum_yy * voxel_vol) - pack.mass * (cx_local * cx_local + cy_local * cy_local);
+    double Ixx = rho * ( (sum_yy * voxel_vol) + (sum_zz * voxel_vol) ) - pack.mass * (cy_local * cy_local + cz_local * cz_local);
+    double Iyy = rho * ( (sum_xx * voxel_vol) + (sum_zz * voxel_vol) ) - pack.mass * (cx_local * cx_local + cz_local * cz_local);
+    double Izz = rho * ( (sum_xx * voxel_vol) + (sum_yy * voxel_vol) ) - pack.mass * (cx_local * cx_local + cy_local * cy_local);
 
-    double Ixy = -(sum_xy * voxel_vol) + (pack.mass * cx_local * cy_local);
-    double Ixz = -(sum_xz * voxel_vol) + (pack.mass * cx_local * cz_local);
-    double Iyz = -(sum_yz * voxel_vol) + (pack.mass * cy_local * cz_local);
+    double Ixy = -(rho * sum_xy * voxel_vol) + (pack.mass * cx_local * cy_local);
+    double Ixz = -(rho * sum_xz * voxel_vol) + (pack.mass * cx_local * cz_local);
+    double Iyz = -(rho * sum_yz * voxel_vol) + (pack.mass * cy_local * cz_local);
 
     double self_inertia_total = pack.mass * (vs * vs) / 6.0;
 
