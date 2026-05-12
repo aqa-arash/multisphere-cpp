@@ -36,7 +36,7 @@ int main() {
     config.precision_target = 0.9999f;
     config.max_spheres = 2000;
     config.radius_offset_vox = 0.0f;
-    config.show_progress = true;
+    config.show_progress = false;
     config.confine_mesh = false;
     config.compute_physics = 1;
     config.persistence = 20;
@@ -45,9 +45,9 @@ int main() {
 
     // parameter study for cube reconstruction
     #pragma omp parallel for schedule(dynamic) 
-    for (int i = 0; i < 2; ++i) {
-        int max_spheres_list[2] = {  1280,   2560};
-        float md_list[2] =        {  3.0,    2.0};
+    for (int i = 0; i < 12; ++i) {  
+        int max_spheres_list[12] = {  1,          2,          4,      8,      16,     32,     64,          128,      256,      512,    1024,      2058};
+        float md_list[12] =        {  11,       10.15,     10.15,    9.75,      8.75,     7.75,     6.15 ,     5.15,     4.15,    3.15,     2.15,      1.15 };
         int max_spheres = max_spheres_list[i];
         float md = md_list[i];
         std::string case_name = std::to_string(max_spheres)+ meshname +".vtk";
