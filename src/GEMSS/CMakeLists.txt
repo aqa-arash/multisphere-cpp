@@ -48,9 +48,56 @@ endif()
 # Only header-only library, no executables or targets here
 
 # --- Installation Rules ---
+#include(GNUInstallDirs)
+#install(TARGETS GEMSS
+#    EXPORT GEMSSTargets
+#    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+#)
+#install(DIRECTORY . DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+
+
+# --- Installation Rules ---
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# Install the library target and associate it with the GEMSSTargets export set
 install(TARGETS GEMSS
     EXPORT GEMSSTargets
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
 )
-install(DIRECTORY . DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# Install header files (Avoids installing CMakeLists.txt or binaries into the include folder)
+install(DIRECTORY .
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+# 1. Export the targets to create GEMSSTargets.cmake
+install(EXPORT GEMSSTargets
+    FILE GEMSSTargets.cmake
+    NAMESPACE GEMSS::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS
+)
+
+# 2. Configure the GEMSSConfig.cmake file from your template
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/GEMSSConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS"
+)
+
+# 3. Create a version file (Good practice for package management)
+set(GEMSS_VERSION "1.0.0")
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfigVersion.cmake"
+    VERSION ${GEMSS_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# 4. Install the generated configuration files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS"
+)
