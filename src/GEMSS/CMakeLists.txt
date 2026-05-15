@@ -27,12 +27,15 @@ if(GEMSS_USE_OPENMP)
 endif()
 
 # --- Library Target ---
+
 add_library(GEMSS INTERFACE)
 target_include_directories(GEMSS INTERFACE 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/thirdparty>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/igl>
-    $<INSTALL_INTERFACE:.>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/GEMSS>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/GEMSS/thirdparty>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/GEMSS/thirdparty/igl>
 )
 target_link_libraries(GEMSS INTERFACE Eigen3::Eigen)
 
@@ -70,7 +73,11 @@ install(TARGETS GEMSS
 # Install header files (Avoids installing CMakeLists.txt or binaries into the include folder)
 install(DIRECTORY .
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
-    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+    FILES_MATCHING 
+    PATTERN "*.h" 
+    PATTERN "*.hpp" 
+    PATTERN "*.cpp"
+    PATTERN "*.c"
 )
 
 # 1. Export the targets to create GEMSSTargets.cmake
