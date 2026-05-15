@@ -69,6 +69,11 @@ install(TARGETS GEMSS
     EXPORT GEMSSTargets
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
 )
+# Export targets for the local build tree
+export(TARGETS GEMSS
+    NAMESPACE GEMSS::
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/GEMSSTargets.cmake"
+)
 
 # Install header files (Avoids installing CMakeLists.txt or binaries into the include folder)
 install(DIRECTORY .
