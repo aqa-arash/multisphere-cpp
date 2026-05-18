@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(GEMSS LANGUAGES CXX)
 
+# Needed to populate CMAKE_INSTALL_INCLUDEDIR
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -29,6 +32,10 @@ endif()
 # --- Library Target ---
 
 add_library(GEMSS INTERFACE)
+# Create alias
+add_library(GEMSS::GEMSS ALIAS GEMSS)
+
+
 target_include_directories(GEMSS INTERFACE 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/thirdparty>
@@ -48,64 +55,53 @@ if(GEMSS_DEBUG)
     target_compile_definitions(GEMSS INTERFACE GEMSS_DEBUG)
 endif()
 
-# Only header-only library, no executables or targets here
+# --- Installation Rules if GEMSS is the main project being built
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CMakePackageConfigHelpers)
 
-# --- Installation Rules ---
-#include(GNUInstallDirs)
-#install(TARGETS GEMSS
-#    EXPORT GEMSSTargets
-#    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-#)
-#install(DIRECTORY . DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-
-
-# --- Installation Rules ---
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
-# Install the library target and associate it with the GEMSSTargets export set
-install(TARGETS GEMSS
-    EXPORT GEMSSTargets
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
-)
+    # Install the library target and associate it with the GEMSSTargets export set
+    install(TARGETS GEMSS
+        EXPORT GEMSSTargets
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
+    )
 
 
-# Install header files (Avoids installing CMakeLists.txt or binaries into the include folder)
-install(DIRECTORY .
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
-    FILES_MATCHING 
-    PATTERN "*.h" 
-    PATTERN "*.hpp" 
-    PATTERN "*.cpp"
-    PATTERN "*.c"
-)
+    # Install header files (Avoids installing CMakeLists.txt or binaries into the include folder)
+    install(DIRECTORY .
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/GEMSS
+        FILES_MATCHING 
+        PATTERN "*.h" 
+        PATTERN "*.hpp" 
+        PATTERN "*.cpp"
+        PATTERN "*.c"
+    )
 
-# 1. Export the targets to create GEMSSTargets.cmake
-install(EXPORT GEMSSTargets
-    FILE GEMSSTargets.cmake
-    NAMESPACE GEMSS::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS
-)
+    # 1. Export the targets to create GEMSSTargets.cmake
+    install(EXPORT GEMSSTargets
+        FILE GEMSSTargets.cmake
+        NAMESPACE GEMSS::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS
+    )
 
-# 2. Configure the GEMSSConfig.cmake file from your template
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/GEMSSConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfig.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS"
-)
+    # 2. Configure the GEMSSConfig.cmake file from your template
+    configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/GEMSSConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfig.cmake"
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS"
+    )
 
-# 3. Create a version file (Good practice for package management)
-set(GEMSS_VERSION "1.0.0")
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfigVersion.cmake"
-    VERSION ${GEMSS_VERSION}
-    COMPATIBILITY AnyNewerVersion
-)
+    # 3. Create a version file (Good practice for package management)
+    set(GEMSS_VERSION "1.0.0")
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfigVersion.cmake"
+        VERSION ${GEMSS_VERSION}
+        COMPATIBILITY AnyNewerVersion
+    )
 
-# 4. Install the generated configuration files
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfigVersion.cmake"
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS"
-)
+    # 4. Install the generated configuration files
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/GEMSSConfigVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GEMSS"
+    )
+endif()
