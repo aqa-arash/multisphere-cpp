@@ -22,6 +22,7 @@
 #include "GEMSS_voxel_processing.hpp"
 #include "GEMSS_split.hpp"
 
+
 namespace GEMSS {
 
 // --- Main Data Structures ---
@@ -156,6 +157,18 @@ inline void print_sphere_pack_info(const SpherePack& sp);
  */
 inline std::pair<std::vector<SpherePack>, VoxelGrid<uint8_t>>
 split_sp(const SpherePack& sp, const Eigen::Vector3f& normal, const Eigen::Vector3f& point , const MultisphereConfig& config);
+
+/**
+ * @brief Fused loop: Splits a SpherePack and concurrently computes the projected fracture area.
+ *
+ * @param sp Input SpherePack.
+ * @param normal Plane normal vector (should be normalized).
+ * @param point Point on the plane (default: origin).
+ * @param config MultisphereConfig for voxelization.
+ * @return Tuple: (vector of reconstructed SpherePacks, labeled_voxel_grid, projected_fracture_area)
+ */
+inline std::tuple<std::vector<SpherePack>, VoxelGrid<uint8_t>, float>
+split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal, const Eigen::Vector3f& point = Eigen::Vector3f::Zero(), const MultisphereConfig& config = MultisphereConfig())
 
 
 
