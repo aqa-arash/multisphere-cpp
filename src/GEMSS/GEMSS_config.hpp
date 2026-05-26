@@ -32,6 +32,9 @@ struct MultisphereConfig {
     bool prune_isolated_spheres = false; // remove isolated spheres
     bool show_progress = true;   // print progress
     Eigen::MatrixX4f initial_sphere_table = Eigen::MatrixX4f(0, 4); // initial spheres
+
+    // --- Fragmentation setting 
+    bool conserve_mass = true;
     
 };
 

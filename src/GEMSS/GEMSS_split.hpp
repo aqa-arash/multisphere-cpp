@@ -213,6 +213,33 @@ split_sp(const SpherePack& sp, const Eigen::Vector3f& normal, const Eigen::Vecto
 
     // --- Step 4: Pass pairs to build function ---
     std::vector<SpherePack> reconstructed = multisphere_from_splitted_voxelGrid(labeled_grid, sphere_groups, config);
+
+     // --- Step 5: Strict Mass Conservation ---
+    if (config.conserve_mass && sp.mass > 0.0f) 
+    {
+        float total_new_mass = 0.0f;
+        // Calculate the uncorrected total mass of all generated fragments
+        for (const auto& frag : reconstructed) {
+            total_new_mass += frag.mass;
+        }
+        
+        if (total_new_mass > 0.0f) 
+        {
+            // Calculate the scaling coefficient required to strictly match the parent
+            float mass_scale = sp.mass / total_new_mass;
+            
+            // Apportion the parent's mass based on the fragment's volume percentage
+            for (auto& frag : reconstructed) {
+                frag.mass *= mass_scale;
+                frag.density *= mass_scale;             // Linearly scales mass
+                frag.inertia_tensor *= mass_scale;      // Linearly scales moments
+                frag.principal_moments *= mass_scale;   // Linearly scales moments
+                
+                // Note: Center of mass and principal axes (eigenvectors) remain mathematically
+                // unchanged when density is scaled uniformly, so we do not touch them.
+            }
+        }
+    }
     
     return std::make_pair(reconstructed, labeled_grid);
 }
@@ -336,6 +363,33 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
 
     // --- Step 4: Pass pairs to build function ---
     std::vector<SpherePack> reconstructed = multisphere_from_splitted_voxelGrid(labeled_grid, sphere_groups, config);
+
+    // --- Step 5: Strict Mass Conservation ---
+    if (config.conserve_mass && sp.mass > 0.0f) 
+    {
+        float total_new_mass = 0.0f;
+        // Calculate the uncorrected total mass of all generated fragments
+        for (const auto& frag : reconstructed) {
+            total_new_mass += frag.mass;
+        }
+        
+        if (total_new_mass > 0.0f) 
+        {
+            // Calculate the scaling coefficient required to strictly match the parent
+            float mass_scale = sp.mass / total_new_mass;
+            
+            // Apportion the parent's mass based on the fragment's volume percentage
+            for (auto& frag : reconstructed) {
+                frag.mass *= mass_scale;
+                frag.density *= mass_scale;             // Linearly scales mass
+                frag.inertia_tensor *= mass_scale;      // Linearly scales moments
+                frag.principal_moments *= mass_scale;   // Linearly scales moments
+                
+                // Note: Center of mass and principal axes (eigenvectors) remain mathematically
+                // unchanged when density is scaled uniformly, so we do not touch them.
+            }
+        }
+    }
     
     return std::make_tuple(reconstructed, labeled_grid, total_area);
 }
