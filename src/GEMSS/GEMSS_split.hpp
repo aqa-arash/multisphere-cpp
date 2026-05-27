@@ -304,7 +304,7 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
                     Eigen::Vector3f pos = grid.origin + grid.voxel_size * Eigen::Vector3f(x + 0.5f, y + 0.5f, z + 0.5f);
                     float d = n_plane.dot(pos - point);
                     
-                    if (d >= 0) {
+                    if (d >= config.fracture_plane_offset * grid.voxel_size) {
                         labeled_grid(x, y, z) = 1; 
                         
                         // FUSED: Evaluate 6 neighbors mathematically
@@ -329,9 +329,12 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
                                 }
                             }
                         }
-                    } else {
+                    } else if (d <= - config.fracture_plane_offset * grid.voxel_size){
                         labeled_grid(x, y, z) = 2;
+                    } else {
+                        labeled_grid(x,y,z) = 0;
                     }
+                    
                 }
             }
         }

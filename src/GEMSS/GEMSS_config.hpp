@@ -17,7 +17,7 @@ struct MultisphereConfig {
     // --- Peak detection and filtering ---
     float min_center_distance_rel = 1.4f; // min center distance (relative) computed as k <= sqrt(min_radius)
     int search_window = 2;       // neighbor distance for peaks
-    float radius_offset_vox = 0.5f; // radius correction
+    float radius_offset_vox = 0.0f; // radius correction
     int min_radius_vox = 2;      // min sphere radius (voxels)
 
 
@@ -35,6 +35,7 @@ struct MultisphereConfig {
 
     // --- Fragmentation setting 
     bool conserve_mass = true;
+    float fracture_plane_offset = 0.25f; // offset coefficient for fracture plane during splitting ( x * voxel size, applied to the plane normal direction, larger values creates a gap between fragments to ensure clean splitting - model sawed off at the plane without residual voxels bridging the fragments, but causes mass loss)
     
 };
 
