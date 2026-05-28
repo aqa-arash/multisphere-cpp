@@ -9,7 +9,7 @@ namespace GEMSS {
 
 struct MultisphereConfig {
     // --- Required for mesh reconstruction ---
-    int div = 100;               // grid resolution
+    int div = 200;               // grid resolution
     int padding = 2;             // grid padding
     float minimum_radius_real = 0.0f; // min sphere radius (real units)
     bool confine_mesh = false;   // confine to mesh boundary
@@ -18,7 +18,7 @@ struct MultisphereConfig {
     float min_center_distance_rel = 1.4f; // min center distance (relative) computed as k <= sqrt(min_radius)
     int search_window = 2;       // neighbor distance for peaks
     float radius_offset_vox = 0.0f; // radius correction
-    int min_radius_vox = 2;      // min sphere radius (voxels)
+    int min_radius_vox = 4;      // min sphere radius (voxels)
 
 
     // --- Convergence & limits ---
@@ -35,7 +35,7 @@ struct MultisphereConfig {
 
     // --- Fragmentation setting 
     bool conserve_mass = true;
-    float fracture_plane_offset = 0.25f; // offset coefficient for fracture plane during splitting ( x * voxel size, applied to the plane normal direction, larger values creates a gap between fragments to ensure clean splitting - model sawed off at the plane without residual voxels bridging the fragments, but causes mass loss)
+    float fracture_plane_offset = 0.5f; // offset coefficient for fracture plane during splitting ( x * voxel size, applied to the plane normal direction, larger values creates a gap between fragments to ensure clean splitting - model sawed off at the plane without residual voxels bridging the fragments, but causes mass loss)
     
 };
 

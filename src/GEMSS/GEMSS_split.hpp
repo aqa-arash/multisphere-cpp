@@ -257,6 +257,11 @@ split_sp(const SpherePack& sp, const Eigen::Vector3f& normal, const Eigen::Vecto
 inline std::tuple<std::vector<SpherePack>, VoxelGrid<uint8_t>, float>
 split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal, const Eigen::Vector3f& point = Eigen::Vector3f::Zero(), const MultisphereConfig& config = MultisphereConfig()) {
     
+    // --- Steo 0 -> set the density of the new particles equal to their parent particle 
+    MultisphereConfig local_config = config;
+    local_config.density = sp.density;
+
+
     // --- Step 1: Compute bounds and voxelize all spheres ---
     Eigen::Vector3f min_corner = sp.centers.row(0).transpose() - Eigen::Vector3f::Ones() * sp.radii(0);
     Eigen::Vector3f max_corner = sp.centers.row(0).transpose() + Eigen::Vector3f::Ones() * sp.radii(0);
@@ -266,11 +271,11 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
         min_corner = min_corner.cwiseMin(c - Eigen::Vector3f::Ones() * r);
         max_corner = max_corner.cwiseMax(c + Eigen::Vector3f::Ones() * r);
     }
-    
-    float voxel_size = (max_corner - min_corner).maxCoeff() / static_cast<float>(config.div > 0 ? config.div : 100);
+
+    float voxel_size = (max_corner - min_corner).maxCoeff() / static_cast<float>(local_config.div);
     if (voxel_size <= 0) voxel_size = 1.0f;
-    Eigen::Vector3f origin = min_corner.array() - config.padding * voxel_size;
-    Eigen::Array3i dims = ((max_corner - min_corner).array() / voxel_size + 2 * config.padding).cast<int>();
+    Eigen::Vector3f origin = min_corner.array() - local_config.padding * voxel_size;
+    Eigen::Array3i dims = ((max_corner - min_corner).array() / voxel_size + 2 * local_config.padding).cast<int>();
     
     VoxelGrid<uint8_t> grid(dims[0], dims[1], dims[2], voxel_size, origin);
     
@@ -304,7 +309,7 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
                     Eigen::Vector3f pos = grid.origin + grid.voxel_size * Eigen::Vector3f(x + 0.5f, y + 0.5f, z + 0.5f);
                     float d = n_plane.dot(pos - point);
                     
-                    if (d >= config.fracture_plane_offset * grid.voxel_size) {
+                    if (d >= local_config.fracture_plane_offset * grid.voxel_size) {
                         labeled_grid(x, y, z) = 1; 
                         
                         // FUSED: Evaluate 6 neighbors mathematically
@@ -329,7 +334,7 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
                                 }
                             }
                         }
-                    } else if (d <= - config.fracture_plane_offset * grid.voxel_size){
+                    } else if (d <= - local_config.fracture_plane_offset * grid.voxel_size){
                         labeled_grid(x, y, z) = 2;
                     } else {
                         labeled_grid(x,y,z) = 0;
@@ -365,10 +370,10 @@ split_and_compute_surface_sp(const SpherePack& sp, const Eigen::Vector3f& normal
     }
 
     // --- Step 4: Pass pairs to build function ---
-    std::vector<SpherePack> reconstructed = multisphere_from_splitted_voxelGrid(labeled_grid, sphere_groups, config);
+    std::vector<SpherePack> reconstructed = multisphere_from_splitted_voxelGrid(labeled_grid, sphere_groups, local_config);
 
     // --- Step 5: Strict Mass Conservation ---
-    if (config.conserve_mass && sp.mass > 0.0f) 
+    if (local_config.conserve_mass && sp.mass > 0.0f) 
     {
         float total_new_mass = 0.0f;
         // Calculate the uncorrected total mass of all generated fragments
